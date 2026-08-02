@@ -8,26 +8,24 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [selectedNews, setSelectedNews] = useState(null);
-  const [favorites, setFavorites] = useState([]); // FAVORITES KOSAM
-  const [comment, setComment] = useState(''); // COMMENT KOSAM
-  const [comments, setComments] = useState({}); // COMMENTS STORE
+  const [favorites, setFavorites] = useState([]);
+  const [comment, setComment] = useState('');
+  const [comments, setComments] = useState({});
 
   useEffect(() => {
     setLoading(true);
     fetch('/api/news', {cache: 'no-store'})
-   .then(res => res.json())
-   .then(data => {
+  .then(res => res.json())
+  .then(data => {
         setAllNews(data);
         setLoading(false);
       })
-   .catch(() => setLoading(false))
+  .catch(() => setLoading(false))
 
-    // Local storage nundi favorites teesuko
     const saved = localStorage.getItem('pulse360_fav');
     if(saved) setFavorites(JSON.parse(saved));
   }, []);
 
-  // Favorites ni save cheyadam
   useEffect(() => {
     localStorage.setItem('pulse360_fav', JSON.stringify(favorites));
   }, [favorites]);
@@ -35,9 +33,9 @@ export default function Home() {
   const categories = ['All', 'General', 'Politics', 'Sports', 'Technology', 'Business', 'Telangana', 'Favorites'];
 
   let filteredNews = filter === 'All'
- ? allNews
+? allNews
     : filter === 'Favorites'
-   ? allNews.filter(news => favorites.includes(news.url))
+  ? allNews.filter(news => favorites.includes(news.url))
     : allNews.filter(news => news.category === filter);
 
   if(search) {
@@ -74,6 +72,7 @@ export default function Home() {
   const bgColor = darkMode? '#111827' : '#f9fafb';
   const cardColor = darkMode? '#1f2937' : 'white';
   const textColor = darkMode? '#e5e7eb' : '#111827';
+  const adBg = darkMode? "#374151" : "#e5e7eb";
 
   return (
     <main style={{padding: "20px", fontFamily: "Arial", background: bgColor, minHeight: "100vh", color: textColor}}>
@@ -88,13 +87,18 @@ export default function Home() {
         <a href="/contact" style={{color: "#2563eb"}}>Contact</a>
       </nav>
 
+      {/* TOP BANNER AD */}
+      <div style={{width: "100%", height: "90px", background: adBg, borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "20px", border: "2px dashed #9ca3af"}}>
+        <p style={{color: "#888", fontSize: "14px"}}>728x90 Banner Ad Space</p>
+      </div>
+
       {/* TRENDING SECTION */}
       {allNews.length > 0 && (
         <div style={{marginBottom: "30px"}}>
           <h2 style={{fontSize: "20px", marginBottom: "10px"}}>🔥 Trending Now</h2>
           <div style={{display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "10px"}}>
             {allNews.slice(0,5).map((news, i) => (
-              <div key={i} onClick={() => setSelectedNews(news)} style={{minWidth: "250px", background: cardColor, padding: "10px", borderRadius: "8px", cursor: "pointer"}}>
+              <div key={i} onClick={() => setSelectedNews(news)} style={{minWidth: "250px", background: cardColor, padding: "10px", borderRadius: "8px", cursor: "pointer", boxShadow: "0 2px 4px rgba(0,0,0,0.1)"}}>
                 <p style={{fontSize: "14px", fontWeight: "bold"}}>{news.title.slice(0, 60)}...</p>
               </div>
             ))}
@@ -111,7 +115,7 @@ export default function Home() {
       <div style={{display: "flex", gap: "10px", justifyContent: "center", marginBottom: "30px", flexWrap: "wrap"}}>
         {categories.map(cat => (
           <button key={cat} onClick={() => setFilter(cat)}
-            style={{padding: "8px 16px", borderRadius: "20px", border: "none", background: filter === cat? "#2563eb" : darkMode? "#374151" : "#e5e7eb", color: filter === cat? "white" : textColor, fontWeight: "bold", cursor: "pointer"}}>
+            style={{padding: "8px 16px", borderRadius: "20px", border: "none", background: filter === cat? "#2563eb" : adBg, color: filter === cat? "white" : textColor, fontWeight: "bold", cursor: "pointer"}}>
             {cat} {cat === 'Favorites' && `(${favorites.length})`}
           </button>
         ))}
@@ -121,18 +125,29 @@ export default function Home() {
        filteredNews.length === 0? <p style={{textAlign: "center", color: "#888"}}>No news found</p> : (
         <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px"}}>
           {filteredNews.map((news, i) => (
-            <div key={i} style={{background: cardColor, padding: "15px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)"}}>
-              <span style={{background: "#2563eb", color: "white", padding: "4px 10px", borderRadius: "12px", fontSize: "12px"}}>{news.category}</span>
-              {news.urlToImage && <img src={news.urlToImage} style={{width: "100%", height: "180px", objectFit: "cover", borderRadius: "8px", marginTop: "10px"}} />}
-              <h3 style={{marginTop: "10px", fontSize: "16px"}}>{news.title}</h3>
-              <p style={{fontSize: "14px", color: darkMode? "#9ca3af" : "#555"}}>{news.description}</p>
+            <div key={i}>
+              {/* IN-FEED AD EVERY 4 CARDS */}
+              {i > 0 && i % 4 === 0 && (
+                <div style={{gridColumn: "1 / -1", width: "100%", height: "250px", background: adBg, borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", margin: "10px 0", border: "2px dashed #9ca3af"}}>
+                  <p style={{color: "#888", fontSize: "14px"}}>300x250 In-Feed Ad Space</p>
+                </div>
+              )}
 
-              <div style={{display: "flex", gap: "10px", marginTop: "10px"}}>
-                <button onClick={() => setSelectedNews(news)} style={{flex: 1, background: "#2563eb", color: "white", border: "none", padding: "8px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold"}}>Read More</button>
-                <button onClick={() => toggleFavorite(news.url)} style={{background: favorites.includes(news.url)? "red" : darkMode? "#374151" : "#e5e7eb", border: "none", padding: "8px 12px", borderRadius: "6px", cursor: "pointer"}}>
-                  {favorites.includes(news.url)? '❤️' : '🤍'}
-                </button>
-                <button onClick={() => handleShare(news)} style={{background: darkMode? "#374151" : "#e5e7eb", border: "none", padding: "8px 12px", borderRadius: "6px", cursor: "pointer"}}>📤</button>
+              {/* NEWS CARD */}
+              <div style={{background: cardColor, padding: "15px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)"}}>
+                <span style={{background: "#2563eb", color: "white", padding: "4px 10px", borderRadius: "12px", fontSize: "12px", textTransform: "uppercase"}}>{news.category}</span>
+                {news.urlToImage && <img src={news.urlToImage} style={{width: "100%", height: "180px", objectFit: "cover", borderRadius: "8px", marginTop: "10px"}} />}
+                <h3 style={{marginTop: "10px", fontSize: "16px"}}>{news.title}</h3>
+                <p style={{fontSize: "14px", color: darkMode? "#9ca3af" : "#555"}}>{news.description}</p>
+                <p style={{fontSize: "12px", color: "#888"}}>{news.source.name} • {new Date(news.publishedAt).toLocaleDateString('en-IN')}</p>
+
+                <div style={{display: "flex", gap: "10px", marginTop: "10px"}}>
+                  <button onClick={() => setSelectedNews(news)} style={{flex: 1, background: "#2563eb", color: "white", border: "none", padding: "8px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold"}}>Read More</button>
+                  <button onClick={() => toggleFavorite(news.url)} style={{background: favorites.includes(news.url)? "red" : adBg, border: "none", padding: "8px 12px", borderRadius: "6px", cursor: "pointer", fontSize: "16px"}}>
+                    {favorites.includes(news.url)? '❤️' : '🤍'}
+                  </button>
+                  <button onClick={() => handleShare(news)} style={{background: adBg, border: "none", padding: "8px 12px", borderRadius: "6px", cursor: "pointer"}}>📤</button>
+                </div>
               </div>
             </div>
           ))}
@@ -147,10 +162,10 @@ export default function Home() {
             <span style={{background: "#2563eb", color: "white", padding: "4px 10px", borderRadius: "12px", fontSize: "12px"}}>{selectedNews.category}</span>
             {selectedNews.urlToImage && <img src={selectedNews.urlToImage} style={{width: "100%", borderRadius: "8px", marginTop: "15px"}} />}
             <h2 style={{marginTop: "15px"}}>{selectedNews.title}</h2>
+            <p style={{fontSize: "14px", color: "#888"}}>{selectedNews.source.name} • {new Date(selectedNews.publishedAt).toLocaleString('en-IN')}</p>
             <p style={{marginTop: "15px", lineHeight: "1.6"}}>{selectedNews.description}</p>
             <button onClick={() => handleShare(selectedNews)} style={{marginTop: "15px", background: "#25D366", color: "white", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold"}}>📤 Share</button>
 
-            {/* COMMENTS SECTION */}
             <div style={{marginTop: "30px", borderTop: "1px solid #ccc", paddingTop: "20px"}}>
               <h3>Comments 💬</h3>
               <div style={{display: "flex", gap: "10px", marginTop: "10px"}}>
@@ -158,16 +173,16 @@ export default function Home() {
                 <button onClick={handleComment} style={{background: "#2563eb", color: "white", border: "none", padding: "10px 15px", borderRadius: "6px", cursor: "pointer"}}>Post</button>
               </div>
               <div style={{marginTop: "15px"}}>
-                {(comments[selectedNews.url] || []).map((c, i) => <p key={i} style={{background: darkMode? "#374151" : "#f3f4f6", padding: "8px", borderRadius: "6px", marginTop: "8px"}}>{c}</p>)}
+                {(comments[selectedNews.url] || []).map((c, i) => <p key={i} style={{background: adBg, padding: "8px", borderRadius: "6px", marginTop: "8px"}}>{c}</p>)}
               </div>
             </div>
           </div>
         </div>
       )}
 
-      <footer style={{marginTop: "50px", padding: "30px 20px", background: darkMode? '#1f2937' : '#e5e7eb', textAlign: "center", borderRadius: "12px 12px 0 0"}}>
+      <footer style={{marginTop: "50px", padding: "30px 20px", background: adBg, textAlign: "center", borderRadius: "12px 12px 0 0"}}>
         <p style={{fontSize: "14px", marginBottom: "10px"}}><b>Pulse360 🇮🇳</b> - Your 24/7 News Source</p>
-        <p style={{fontSize: "12px", color: "#888"}}>© 2026 Pulse360. Made in ANDHRA PRADESH ❤️ NARASIMHA RAO KILLI </p>
+        <p style={{fontSize: "12px", color: "#888"}}>© 2026 Pulse360. All rights reserved. Made in ANDHRA PRADESH ❤️ NARASIMHA RAO KILLI </p>
       </footer>
     </main>
   )
