@@ -6,9 +6,18 @@ export default function Home() {
   ]
 
   return (
-    <main style={{padding: "20px", fontFamily: "Arial", background: "#f9fafb"}}>
-      <h1 style={{color: "#2563eb", fontSize: "32px", fontWeight: "bold"}}>Pulse360 News</h1>
-      <p style={{color: "#555"}}>Real-time News from India</p>
+   <main style={{padding: "20px", fontFamily: "Arial", background: "#f9fafb"}}>
+  <h1 style={{color: "#2563eb", fontSize: "32px", fontWeight: "bold"}}>Pulse360 News</h1>
+  
+  {/* NAV LINKS - IDHI ADD CHEYYI */}
+  <nav style={{marginBottom: "20px", display: "flex", gap: "15px"}}>
+    <a href="/" style={{color: "#2563eb", textDecoration: "none"}}>Home</a>
+    <a href="/about" style={{color: "#2563eb", textDecoration: "none"}}>About</a>
+    <a href="/contact" style={{color: "#2563eb", textDecoration: "none"}}>Contact</a>
+    <a href="/privacy" style={{color: "#2563eb", textDecoration: "none"}}>Privacy</a>
+  </nav>
+  
+  <p style={{color: "#555"}}>Real-time News from India</p>
       
       {news.map((item) => (
         <div key={item.id} style={{border: "1px solid #ddd", padding: "15px", marginTop: "15px", borderRadius: "8px", background: "white"}}>
