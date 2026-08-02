@@ -7,23 +7,37 @@ export default function Home() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
-  const [selectedNews, setSelectedNews] = useState(null); // MODAL KOSAM
+  const [selectedNews, setSelectedNews] = useState(null);
+  const [favorites, setFavorites] = useState([]); // FAVORITES KOSAM
+  const [comment, setComment] = useState(''); // COMMENT KOSAM
+  const [comments, setComments] = useState({}); // COMMENTS STORE
 
   useEffect(() => {
     setLoading(true);
     fetch('/api/news', {cache: 'no-store'})
-    .then(res => res.json())
-    .then(data => {
+   .then(res => res.json())
+   .then(data => {
         setAllNews(data);
         setLoading(false);
       })
-    .catch(() => setLoading(false))
+   .catch(() => setLoading(false))
+
+    // Local storage nundi favorites teesuko
+    const saved = localStorage.getItem('pulse360_fav');
+    if(saved) setFavorites(JSON.parse(saved));
   }, []);
 
-  const categories = ['All', 'General', 'Politics', 'Sports', 'Technology', 'Business', 'Telangana'];
+  // Favorites ni save cheyadam
+  useEffect(() => {
+    localStorage.setItem('pulse360_fav', JSON.stringify(favorites));
+  }, [favorites]);
+
+  const categories = ['All', 'General', 'Politics', 'Sports', 'Technology', 'Business', 'Telangana', 'Favorites'];
 
   let filteredNews = filter === 'All'
-  ? allNews
+ ? allNews
+    : filter === 'Favorites'
+   ? allNews.filter(news => favorites.includes(news.url))
     : allNews.filter(news => news.category === filter);
 
   if(search) {
@@ -33,16 +47,26 @@ export default function Home() {
     )
   }
 
-  // SHARE FUNCTION
+  const toggleFavorite = (url) => {
+    if(favorites.includes(url)) {
+      setFavorites(favorites.filter(f => f!== url));
+    } else {
+      setFavorites([...favorites, url]);
+    }
+  }
+
+  const handleComment = () => {
+    if(!comment.trim() ||!selectedNews) return;
+    const newsComments = comments[selectedNews.url] || [];
+    setComments({...comments, [selectedNews.url]: [...newsComments, comment]});
+    setComment('');
+  }
+
   const handleShare = (news) => {
     if(navigator.share) {
-      navigator.share({
-        title: news.title,
-        text: news.description,
-        url: window.location.href
-      }).catch(err => console.log(err))
+      navigator.share({title: news.title, text: news.description, url: window.location.href})
     } else {
-      navigator.clipboard.writeText(window.location.href + '?news=' + news.title);
+      navigator.clipboard.writeText(window.location.href);
       alert('Link Copied!')
     }
   }
@@ -55,9 +79,7 @@ export default function Home() {
     <main style={{padding: "20px", fontFamily: "Arial", background: bgColor, minHeight: "100vh", color: textColor}}>
       <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
         <h1 style={{color: "#2563eb", fontSize: "32px", fontWeight: "bold"}}>Pulse360 🇮🇳</h1>
-        <button onClick={() => setDarkMode(!darkMode)} style={{fontSize: "24px", background: "none", border: "none", cursor: "pointer"}}>
-          {darkMode? '☀️' : '🌙'}
-        </button>
+        <button onClick={() => setDarkMode(!darkMode)} style={{fontSize: "24px", background: "none", border: "none", cursor: "pointer"}}>{darkMode? '☀️' : '🌙'}</button>
       </div>
 
       <nav style={{marginBottom: "20px", display: "flex", gap: "15px", justifyContent: "center"}}>
@@ -66,25 +88,31 @@ export default function Home() {
         <a href="/contact" style={{color: "#2563eb"}}>Contact</a>
       </nav>
 
+      {/* TRENDING SECTION */}
       {allNews.length > 0 && (
-        <div style={{background: "#dc2626", color: "white", padding: "8px", borderRadius: "6px", marginBottom: "20px", overflow: "hidden", whiteSpace: "nowrap"}}>
-          <marquee><b>BREAKING:</b> {allNews[0].title}</marquee>
+        <div style={{marginBottom: "30px"}}>
+          <h2 style={{fontSize: "20px", marginBottom: "10px"}}>🔥 Trending Now</h2>
+          <div style={{display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "10px"}}>
+            {allNews.slice(0,5).map((news, i) => (
+              <div key={i} onClick={() => setSelectedNews(news)} style={{minWidth: "250px", background: cardColor, padding: "10px", borderRadius: "8px", cursor: "pointer"}}>
+                <p style={{fontSize: "14px", fontWeight: "bold"}}>{news.title.slice(0, 60)}...</p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      <input
-        type="text"
-        placeholder="Search news..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{width: "100%", maxWidth: "500px", padding: "12px", borderRadius: "8px", border: "1px solid #ccc", margin: "0 auto 20px auto", display: "block", background: cardColor, color: textColor}}
-      />
+      {allNews.length > 0 && (
+        <div style={{background: "#dc2626", color: "white", padding: "8px", borderRadius: "6px", marginBottom: "20px"}}><marquee><b>BREAKING:</b> {allNews[0].title}</marquee></div>
+      )}
+
+      <input type="text" placeholder="Search news..." value={search} onChange={(e) => setSearch(e.target.value)} style={{width: "100%", maxWidth: "500px", padding: "12px", borderRadius: "8px", border: "1px solid #ccc", margin: "0 auto 20px auto", display: "block", background: cardColor, color: textColor}} />
 
       <div style={{display: "flex", gap: "10px", justifyContent: "center", marginBottom: "30px", flexWrap: "wrap"}}>
         {categories.map(cat => (
           <button key={cat} onClick={() => setFilter(cat)}
             style={{padding: "8px 16px", borderRadius: "20px", border: "none", background: filter === cat? "#2563eb" : darkMode? "#374151" : "#e5e7eb", color: filter === cat? "white" : textColor, fontWeight: "bold", cursor: "pointer"}}>
-            {cat}
+            {cat} {cat === 'Favorites' && `(${favorites.length})`}
           </button>
         ))}
       </div>
@@ -94,28 +122,24 @@ export default function Home() {
         <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px"}}>
           {filteredNews.map((news, i) => (
             <div key={i} style={{background: cardColor, padding: "15px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)"}}>
-              <span style={{background: "#2563eb", color: "white", padding: "4px 10px", borderRadius: "12px", fontSize: "12px", textTransform: "uppercase"}}>
-                {news.category}
-              </span>
+              <span style={{background: "#2563eb", color: "white", padding: "4px 10px", borderRadius: "12px", fontSize: "12px"}}>{news.category}</span>
               {news.urlToImage && <img src={news.urlToImage} style={{width: "100%", height: "180px", objectFit: "cover", borderRadius: "8px", marginTop: "10px"}} />}
               <h3 style={{marginTop: "10px", fontSize: "16px"}}>{news.title}</h3>
               <p style={{fontSize: "14px", color: darkMode? "#9ca3af" : "#555"}}>{news.description}</p>
-              <p style={{fontSize: "12px", color: "#888"}}>{news.source.name} • {new Date(news.publishedAt).toLocaleDateString('en-IN')}</p>
 
               <div style={{display: "flex", gap: "10px", marginTop: "10px"}}>
-                <button onClick={() => setSelectedNews(news)} style={{flex: 1, background: "#2563eb", color: "white", border: "none", padding: "8px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold"}}>
-                  Read More
+                <button onClick={() => setSelectedNews(news)} style={{flex: 1, background: "#2563eb", color: "white", border: "none", padding: "8px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold"}}>Read More</button>
+                <button onClick={() => toggleFavorite(news.url)} style={{background: favorites.includes(news.url)? "red" : darkMode? "#374151" : "#e5e7eb", border: "none", padding: "8px 12px", borderRadius: "6px", cursor: "pointer"}}>
+                  {favorites.includes(news.url)? '❤️' : '🤍'}
                 </button>
-                <button onClick={() => handleShare(news)} style={{background: darkMode? "#374151" : "#e5e7eb", border: "none", padding: "8px 12px", borderRadius: "6px", cursor: "pointer"}}>
-                  📤 Share
-                </button>
+                <button onClick={() => handleShare(news)} style={{background: darkMode? "#374151" : "#e5e7eb", border: "none", padding: "8px 12px", borderRadius: "6px", cursor: "pointer"}}>📤</button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* NEWS MODAL - MANA SITE LO NE OPEN AVVALI */}
+      {/* NEWS MODAL WITH COMMENTS */}
       {selectedNews && (
         <div onClick={() => setSelectedNews(null)} style={{position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px"}}>
           <div onClick={(e) => e.stopPropagation()} style={{background: cardColor, borderRadius: "12px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", padding: "20px"}}>
@@ -123,25 +147,28 @@ export default function Home() {
             <span style={{background: "#2563eb", color: "white", padding: "4px 10px", borderRadius: "12px", fontSize: "12px"}}>{selectedNews.category}</span>
             {selectedNews.urlToImage && <img src={selectedNews.urlToImage} style={{width: "100%", borderRadius: "8px", marginTop: "15px"}} />}
             <h2 style={{marginTop: "15px"}}>{selectedNews.title}</h2>
-            <p style={{fontSize: "14px", color: "#888"}}>{selectedNews.source.name} • {new Date(selectedNews.publishedAt).toLocaleString('en-IN')}</p>
             <p style={{marginTop: "15px", lineHeight: "1.6"}}>{selectedNews.description}</p>
-            <p style={{marginTop: "10px", fontSize: "14px"}}><b>Source:</b> <a href={selectedNews.url} target="_blank" style={{color: "#2563eb"}}>Original Article</a></p>
-            <button onClick={() => handleShare(selectedNews)} style={{marginTop: "15px", background: "#25D366", color: "white", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold"}}>
-              📤 Share This News
-            </button>
+            <button onClick={() => handleShare(selectedNews)} style={{marginTop: "15px", background: "#25D366", color: "white", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold"}}>📤 Share</button>
+
+            {/* COMMENTS SECTION */}
+            <div style={{marginTop: "30px", borderTop: "1px solid #ccc", paddingTop: "20px"}}>
+              <h3>Comments 💬</h3>
+              <div style={{display: "flex", gap: "10px", marginTop: "10px"}}>
+                <input value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Write a comment..." style={{flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #ccc", background: cardColor, color: textColor}}/>
+                <button onClick={handleComment} style={{background: "#2563eb", color: "white", border: "none", padding: "10px 15px", borderRadius: "6px", cursor: "pointer"}}>Post</button>
+              </div>
+              <div style={{marginTop: "15px"}}>
+                {(comments[selectedNews.url] || []).map((c, i) => <p key={i} style={{background: darkMode? "#374151" : "#f3f4f6", padding: "8px", borderRadius: "6px", marginTop: "8px"}}>{c}</p>)}
+              </div>
+            </div>
           </div>
         </div>
       )}
-        {/* FOOTER */}
-<footer style={{marginTop: "50px", padding: "30px 20px", background: darkMode? '#1f2937' : '#e5e7eb', textAlign: "center", borderRadius: "12px 12px 0 0"}}>
-  <p style={{fontSize: "14px", marginBottom: "10px"}}><b>Pulse360 🇮🇳</b> - Your 24/7 News Source</p>
-  <div style={{display: "flex", gap: "20px", justifyContent: "center", marginBottom: "15px"}}>
-    <a href="/" style={{color: "#2563eb"}}>Home</a>
-    <a href="/about" style={{color: "#2563eb"}}>About</a>
-    <a href="/contact" style={{color: "#2563eb"}}>Contact</a>
-  </div>
-  <p style={{fontSize: "12px", color: "#888"}}>© 2026 Pulse360. All rights reserved. Made in ANDHRA PRADESH ❤️ NARASIMHA RAO KILLI</p>
-</footer>
+
+      <footer style={{marginTop: "50px", padding: "30px 20px", background: darkMode? '#1f2937' : '#e5e7eb', textAlign: "center", borderRadius: "12px 12px 0 0"}}>
+        <p style={{fontSize: "14px", marginBottom: "10px"}}><b>Pulse360 🇮🇳</b> - Your 24/7 News Source</p>
+        <p style={{fontSize: "12px", color: "#888"}}>© 2026 Pulse360. Made in ANDHRA PRADESH ❤️ NARASIMHA RAO KILLI </p>
+      </footer>
     </main>
   )
 }
