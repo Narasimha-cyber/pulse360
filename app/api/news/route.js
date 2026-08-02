@@ -18,7 +18,8 @@ export async function GET() {
       else if(title.includes('bjp') || title.includes('congress') || title.includes('pm') || title.includes('minister') || title.includes('election')) category = 'Politics';
       else if(title.includes('tech') || title.includes('ai') || title.includes('mobile') || title.includes('apple') || title.includes('google')) category = 'Technology';
       else if(title.includes('business') || title.includes('stock') || title.includes('market') || title.includes('rupee') || title.includes('company')) category = 'Business';
-      
+      else if(title.includes('telangana') || title.includes('hyderabad') || title.includes('secunderabad') || title.includes('kcr') || title.includes('revanth')) category = 'Telangana'; // IDHI KOTHA
+      else category = 'General';
       return {
         title: a.title,
         description: a.description,
