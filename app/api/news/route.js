@@ -1,4 +1,4 @@
-export async function GET() {
+export async function GET() {   // GET capital letters lo undali
   const API_KEY = "a15e136ed5754b11916b66a9b404b40f";
   const categories = ['sports', 'technology', 'business'];
   let allNews = [];
@@ -10,6 +10,7 @@ export async function GET() {
       allNews.push(...data.articles.map(a => ({...a, category: cat})));
     }
   }
-  
-  return Response.json(allNews);
+  return new Response(JSON.stringify(allNews), {  // Response ila marcham
+    headers: { 'Content-Type': 'application/json' }
+  });
 }
