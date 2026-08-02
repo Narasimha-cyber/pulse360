@@ -1,6 +1,11 @@
 export default async function Home() {
-  const res = await fetch('/api/news', {cache: 'no-store'});
-  const allNews = await res.json();
+  let allNews = [];
+  try {
+    const res = await fetch('/api/news', {cache: 'no-store'});
+    allNews = await res.json();
+  } catch(e) {
+    allNews = [];
+  }
 
   return (
     <main style={{padding: "20px", fontFamily: "Arial", background: "#f9fafb"}}>
@@ -13,19 +18,20 @@ export default async function Home() {
         <a href="/privacy" style={{color: "#2563eb"}}>Privacy</a>
       </nav>
       
-      <p style={{color: "#555", marginBottom: "20px"}}>Real-time News from India</p>
-      
-      <div style={{display: "grid", gap: "15px"}}>
-        {allNews.map((news, i) => (
-          <div key={i} style={{background: "white", padding: "15px", borderRadius: "8px", border: "1px solid #eee"}}>
-            <span style={{background: "#2563eb", color: "white", padding: "4px 10px", borderRadius: "12px", fontSize: "12px", textTransform: "capitalize"}}>
-              {news.category}
-            </span>
-            <h3 style={{marginTop: "10px", fontSize: "18px"}}>{news.title}</h3>
-            <p style={{color: "#777", fontSize: "14px"}}>{news.source?.name}</p>
-          </div>
-        ))}
-      </div>
+      {allNews.length === 0 ? (
+        <p style={{color: "red"}}>News load avvatledu. API limit ayyundochu. 1 hour tarvatha try cheyi</p>
+      ) : (
+        <div style={{display: "grid", gap: "15px"}}>
+          {allNews.map((news, i) => (
+            <div key={i} style={{background: "white", padding: "15px", borderRadius: "8px", border: "1px solid #eee"}}>
+              <span style={{background: "#2563eb", color: "white", padding: "4px 10px", borderRadius: "12px", fontSize: "12px"}}>
+                {news.category}
+              </span>
+              <h3 style={{marginTop: "10px"}}>{news.title}</h3>
+            </div>
+          ))}
+        </div>
+      )}
     </main>
   )
 }
