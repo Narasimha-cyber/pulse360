@@ -1,5 +1,5 @@
 export default async function Home() {
-  const res = await fetch('https://pulse360-news.vercel.app/api/news', {cache: 'no-store'});
+  const res = await fetch('/api/news', {cache: 'no-store'});
   const allNews = await res.json();
 
   return (
