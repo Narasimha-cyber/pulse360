@@ -1,14 +1,21 @@
-'use client'; // filter kosam client side kavali
+'use client';
 import { useState, useEffect } from 'react';
 
 export default function Home() {
   const [allNews, setAllNews] = useState([]);
   const [filter, setFilter] = useState('All');
+  const [loading, setLoading] = useState(true);
 
+  // Page load ayinappude okesari motham news techkunta
   useEffect(() => {
+    setLoading(true);
     fetch('/api/news', {cache: 'no-store'})
       .then(res => res.json())
-      .then(data => setAllNews(data))
+      .then(data => {
+        setAllNews(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false))
   }, []);
 
   const categories = ['All', 'General', 'Politics', 'Sports', 'Technology', 'Business'];
@@ -48,8 +55,10 @@ export default function Home() {
         ))}
       </div>
       
-      {filteredNews.length === 0 ? (
-        <p style={{color: "red", textAlign: "center"}}>Loading news...</p>
+      {loading ? (
+        <p style={{textAlign: "center", fontSize: "18px"}}>Loading news...</p>
+      ) : filteredNews.length === 0 ? (
+        <p style={{textAlign: "center", color: "#888"}}>No news found in "{filter}" category</p>
       ) : (
         <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px"}}>
           {filteredNews.map((news, i) => (
