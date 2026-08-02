@@ -2,12 +2,21 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const API_KEY = process.env.GNEWS_API_KEY;
-  const queries = ['india', 'technology', 'business', 'cricket']; // mix cheddam
+  
+  // India categories - 4 types mix
+  const searches = [
+    {q: 'india', category: 'General'},
+    {q: 'india politics', category: 'Politics'},
+    {q: 'india cricket', category: 'Sports'},
+    {q: 'india technology', category: 'Technology'},
+    {q: 'india business', category: 'Business'}
+  ];
+  
   let allNews = [];
   
-  for(let q of queries) {
+  for(let s of searches) {
     try {
-      const res = await fetch(`https://gnews.io/api/v4/search?q=${q}&lang=en&country=in&max=8&apikey=${API_KEY}`, {cache: 'no-store'});
+      const res = await fetch(`https://gnews.io/api/v4/search?q=${s.q}&lang=en&country=in&max=8&apikey=${API_KEY}`, {cache: 'no-store'});
       const data = await res.json();
       
       if(data.articles && data.articles.length > 0) {
@@ -18,7 +27,7 @@ export async function GET() {
           url: a.url,
           publishedAt: a.publishedAt,
           source: { name: a.source.name },
-          category: q // category ga query name pedadam
+          category: s.category
         })));
       }
     } catch(e) {
@@ -26,8 +35,8 @@ export async function GET() {
     }
   }
   
-  // duplicate news remove cheddam
+  // duplicate remove
   const uniqueNews = allNews.filter((v,i,a)=>a.findIndex(t=>(t.url === v.url))===i)
   
-  return Response.json(uniqueNews.slice(0, 24)); // max 24 news
+  return Response.json(uniqueNews.slice(0, 32)); // 32 news max
 }
