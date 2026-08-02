@@ -132,6 +132,16 @@ export default function Home() {
           </div>
         </div>
       )}
+        {/* FOOTER */}
+<footer style={{marginTop: "50px", padding: "30px 20px", background: darkMode? '#1f2937' : '#e5e7eb', textAlign: "center", borderRadius: "12px 12px 0 0"}}>
+  <p style={{fontSize: "14px", marginBottom: "10px"}}><b>Pulse360 🇮🇳</b> - Your 24/7 News Source</p>
+  <div style={{display: "flex", gap: "20px", justifyContent: "center", marginBottom: "15px"}}>
+    <a href="/" style={{color: "#2563eb"}}>Home</a>
+    <a href="/about" style={{color: "#2563eb"}}>About</a>
+    <a href="/contact" style={{color: "#2563eb"}}>Contact</a>
+  </div>
+  <p style={{fontSize: "12px", color: "#888"}}>© 2026 Pulse360. All rights reserved. Made in ANDHRA PRADESH ❤️ NARASIMHA RAO KILLI</p>
+</footer>
     </main>
   )
 }
