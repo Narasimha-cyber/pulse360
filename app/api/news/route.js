@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'; // cache off
+
 export async function GET() {
   const API_KEY = "918b260d09e849499aa4aca07a24205e";
   const categories = ['sports', 'technology', 'business'];
@@ -5,18 +7,20 @@ export async function GET() {
   
   for(let cat of categories) {
     try {
-      const res = await fetch(`https://newsapi.org/v2/top-headlines?category=${cat}&country=in&pageSize=10&apiKey=${API_KEY}`);
+      const res = await fetch(`https://newsapi.org/v2/top-headlines?category=${cat}&country=in&pageSize=10&apiKey=${API_KEY}`, {
+        cache: 'no-store'
+      });
       const data = await res.json();
+      console.log(data); // debug kosam
       if(data.status === "ok" && data.articles) {
         allNews.push(...data.articles.map(a => ({...a, category: cat})));
+      } else {
+        console.log("API Error:", data.message)
       }
     } catch(e) {
-      console.log("API Error for", cat, e);
+      console.log("Fetch Error:", e);
     }
   }
   
-  // API fail aina kuda empty array return cheddam, crash avvadhu
-  return new Response(JSON.stringify(allNews), {
-    headers: { 'Content-Type': 'application/json' }
-  });
+  return Response.json(allNews);
 }
