@@ -2,12 +2,12 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const API_KEY = process.env.GNEWS_API_KEY;
-  const categories = ['sports', 'technology', 'business'];
+  const queries = ['india', 'technology', 'business', 'cricket']; // mix cheddam
   let allNews = [];
   
-  for(let cat of categories) {
+  for(let q of queries) {
     try {
-      const res = await fetch(`https://gnews.io/api/v4/top-headlines?category=${cat}&lang=en&country=in&max=10&apikey=${API_KEY}`, {cache: 'no-store'});
+      const res = await fetch(`https://gnews.io/api/v4/search?q=${q}&lang=en&country=in&max=8&apikey=${API_KEY}`, {cache: 'no-store'});
       const data = await res.json();
       
       if(data.articles && data.articles.length > 0) {
@@ -18,12 +18,16 @@ export async function GET() {
           url: a.url,
           publishedAt: a.publishedAt,
           source: { name: a.source.name },
-          category: cat
+          category: q // category ga query name pedadam
         })));
       }
     } catch(e) {
       console.log("Error:", e)
     }
   }
-  return Response.json(allNews);
+  
+  // duplicate news remove cheddam
+  const uniqueNews = allNews.filter((v,i,a)=>a.findIndex(t=>(t.url === v.url))===i)
+  
+  return Response.json(uniqueNews.slice(0, 24)); // max 24 news
 }
