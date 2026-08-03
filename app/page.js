@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Sun, Moon } from 'lucide-react'; // Line 2
 
 export default function HomePage() {
   const [filter, setFilter] = useState('top');
@@ -89,7 +88,7 @@ export default function HomePage() {
             onClick={()=>setDarkMode(!darkMode)}
             style={{marginLeft:'auto', padding:'8px', borderRadius:'50%', background: darkMode? '#333' : '#eee', border:'none', cursor:'pointer'}}
           >
-            {darkMode? <Sun size={20} color='#fff'/> : <Moon size={20} color='#000'/>}
+           {darkMode? '☀️' : '🌙'}
           </button>
         </div>
       </header>
