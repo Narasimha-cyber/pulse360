@@ -1,6 +1,5 @@
 "use client"
-import { useState, useEffect, useRef } from 'react'
-import Script from 'next/script'
+import { useState, useEffect } from 'react'
 
 export default function Home() {
   const [allNews, setAllNews] = useState([]);
@@ -12,43 +11,63 @@ export default function Home() {
   const [favorites, setFavorites] = useState([]);
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState({});
-  const [showGlobe, setShowGlobe] = useState(true);
-  const globeRef = useRef(null);
+  const [showIntro, setShowIntro] = useState(true);
 
-  function GlobeIntro({onFinish}) {
+  function SpaceIntro({onFinish}) {
     useEffect(() => {
-      const initGlobe = () => {
-        if(window.Globe && document.getElementById('globeViz')) {
-          const globe = Globe()
-        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-        .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
-        .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
-        .showAtmosphere(true)
-        .atmosphereColor('lightblue')
-        .atmosphereAltitude(0.25)
-        .pointOfView({ lat: 0, lng: 0, altitude: 3.5 }, 0)
-        .pointOfView({ lat: 20.5937, lng: 78.9629, altitude: 1.2 }, 4500)
-            (document.getElementById('globeViz'))
-          globeRef.current = globe;
-        }
-      }
-
-      // Script load ayye varaku wait cheyadam
-      setTimeout(initGlobe, 800)
-
       const timer = setTimeout(() => {
-        setShowGlobe(false)
+        setShowIntro(false)
         onFinish()
-      }, 5500)
+      }, 5000)
       return () => clearTimeout(timer)
     }, [])
 
-    if(!showGlobe) return null
+    if(!showIntro) return null
     return (
-      <div style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}>
-        <div id="globeViz" style={{width: '100%', height: '80%'}}></div>
-        <h1 style={{color: 'white', fontSize: '45px', fontWeight: 'bold', textShadow: '0 0 20px #00aaff, 0 0 40px #00aaff'}}>Pulse 360 NEWS</h1>
-        <p style={{color: '#ffdd00', fontSize: '20px', textShadow: '0 0 10px #ffdd00'}}>From Space to You</p>
+      <div style={{
+        position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', 
+        background: 'radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%)', 
+        zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', 
+        flexDirection: 'column', overflow: 'hidden'
+      }}>
+        {/* Stars */}
+        <div style={{position: 'absolute', width: '100%', height: '100%'}}>
+          {[...Array(100)].map((_, i) => (
+            <div key={i} style={{
+              position: 'absolute', 
+              width: '2px', height: '2px', background: 'white', borderRadius: '50%',
+              top: `${Math.random()*100}%`, left: `${Math.random()*100}%`,
+              animation: `twinkle ${2+Math.random()*3}s infinite`
+            }}></div>
+          ))}
+        </div>
+
+        {/* Globe Animation */}
+        <div style={{
+          width: '300px', height: '300px', borderRadius: '50%',
+          background: 'url(https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg) center/cover',
+          boxShadow: '0 0 50px #00aaff, inset 0 0 50px rgba(0,0,0,0.5)',
+          animation: 'rotateGlobe 5s linear, zoomIndia 5s ease-in-out',
+          marginBottom: '30px'
+        }}></div>
+
+        <h1 style={{color: 'white', fontSize: '45px', fontWeight: 'bold', textShadow: '0 0 20px #00aaff, 0 0 40px #00aaff', zIndex: 10}}>Pulse 360 NEWS</h1>
+        <p style={{color: '#ffdd00', fontSize: '20px', textShadow: '0 0 10px #ffdd00', zIndex: 10}}>From Space to You</p>
+
+        <style>{`
+          @keyframes rotateGlobe {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          @keyframes zoomIndia {
+            0% { transform: scale(1); }
+            100% { transform: scale(2.5) translateY(-50px); }
+          }
+          @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+          }
+        `}</style>
       </div>
     )
   }
@@ -71,9 +90,7 @@ export default function Home() {
   }, [favorites]);
 
   const categories = ['All', 'General', 'Politics', 'Sports', 'Technology', 'Business', 'Telangana', 'Favorites'];
-
   let filteredNews = filter === 'All'? allNews : filter === 'Favorites'? allNews.filter(news => favorites.includes(news.url)) : allNews.filter(news => news.category === filter);
-
   if(search) {
     filteredNews = filteredNews.filter(news =>
       news.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -112,9 +129,7 @@ export default function Home() {
 
   return (
     <>
-      {loading && <GlobeIntro onFinish={() => setLoading(false)} />}
-      <Script src="https://unpkg.com/three@0.160.0/build/three.min.js" strategy="beforeInteractive" />
-      <Script src="https://unpkg.com/globe.gl" strategy="beforeInteractive" />
+      {loading && <SpaceIntro onFinish={() => setLoading(false)} />}
 
       {!loading && (
         <main style={{padding: "20px", fontFamily: "Arial", background: bgColor, minHeight: "100vh", color: textColor, transition: "all 0.3s"}}>
