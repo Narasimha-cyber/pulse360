@@ -11,20 +11,23 @@ export default function Home() {
   const [favorites, setFavorites] = useState([]);
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState({});
-  const [showIntro, setShowIntro] = useState(true);
+  const [showIntro, setShowIntro] = useState(false); // 👈 false tho start chey
   const [visitorCount, setVisitorCount] = useState(0);
   const videoRef = useRef(null);
+  const hasPlayed = useRef(false); // 👈 Double play aagodaniki
 
   function VideoIntro({onFinish}) {
     useEffect(() => {
       const video = videoRef.current;
-      if (video) {
+      if (video &&!hasPlayed.current) {
+        hasPlayed.current = true;
         video.play().catch(err => console.log("Autoplay blocked:", err))
       }
     }, [])
 
     const handleVideoEnd = () => {
-      setShowIntro(false); // 👈 First off chesi
+      setShowIntro(false);
+      localStorage.setItem('pulse360_intro_seen', 'true'); // 👈 Chusanu ani save
       onFinish();
     }
 
@@ -42,6 +45,12 @@ export default function Home() {
   }
 
   useEffect(() => {
+    // 👈 Page load ayyaka check chey
+    const introSeen = localStorage.getItem('pulse360_intro_seen');
+    if(!introSeen) {
+      setShowIntro(true);
+    }
+
     fetch('https://api.countapi.xyz/hit/pulse360-narasimha/visits').then(res => res.json()).then(data => setVisitorCount(data.value)).catch(() => {})
     setLoading(true);
     fetch('/api/news', {cache: 'no-store'}).then(res => res.json()).then(data => { setAllNews(data); setLoading(false); }).catch(() => setLoading(false))
