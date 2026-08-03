@@ -17,36 +17,38 @@ export default function Home() {
 
   function GlobeIntro({onFinish}) {
     useEffect(() => {
+      const initGlobe = () => {
+        if(window.Globe && document.getElementById('globeViz')) {
+          const globe = Globe()
+        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+        .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+        .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
+        .showAtmosphere(true)
+        .atmosphereColor('lightblue')
+        .atmosphereAltitude(0.25)
+        .pointOfView({ lat: 0, lng: 0, altitude: 3.5 }, 0)
+        .pointOfView({ lat: 20.5937, lng: 78.9629, altitude: 1.2 }, 4500)
+            (document.getElementById('globeViz'))
+          globeRef.current = globe;
+        }
+      }
+
+      // Script load ayye varaku wait cheyadam
+      setTimeout(initGlobe, 800)
+
       const timer = setTimeout(() => {
         setShowGlobe(false)
         onFinish()
-      }, 5000)
+      }, 5500)
       return () => clearTimeout(timer)
-    }, [])
-
-    useEffect(() => {
-      if(window.Globe && document.getElementById('globeViz')) {
-        const globe = Globe()
-       .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-       .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
-       .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
-       .showAtmosphere(true)
-       .atmosphereColor('lightblue')
-       .atmosphereAltitude(0.2)
-       .pointOfView({ lat: 0, lng: 0, altitude: 3 }, 0)
-       .pointOfView({ lat: 20.5937, lng: 78.9629, altitude: 1.5 }, 4000)
-          (document.getElementById('globeViz'))
-
-        globeRef.current = globe;
-      }
     }, [])
 
     if(!showGlobe) return null
     return (
-      <div style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to bottom, #000428, #004e92)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}>
+      <div style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}>
         <div id="globeViz" style={{width: '100%', height: '80%'}}></div>
-        <h1 style={{color: 'white', fontSize: '40px', fontWeight: 'bold', textShadow: '0 0 10px #00aaff'}}>Pulse 360 NEWS</h1>
-        <p style={{color: '#ffcc00', fontSize: '18px'}}>From Space to You</p>
+        <h1 style={{color: 'white', fontSize: '45px', fontWeight: 'bold', textShadow: '0 0 20px #00aaff, 0 0 40px #00aaff'}}>Pulse 360 NEWS</h1>
+        <p style={{color: '#ffdd00', fontSize: '20px', textShadow: '0 0 10px #ffdd00'}}>From Space to You</p>
       </div>
     )
   }
@@ -54,12 +56,12 @@ export default function Home() {
   useEffect(() => {
     setLoading(true);
     fetch('/api/news', {cache: 'no-store'})
-    .then(res => res.json())
-    .then(data => {
+   .then(res => res.json())
+   .then(data => {
         setAllNews(data);
         setLoading(false);
       })
-    .catch(() => setLoading(false))
+   .catch(() => setLoading(false))
     const saved = localStorage.getItem('pulse360_fav');
     if(saved) setFavorites(JSON.parse(saved));
   }, []);
@@ -115,7 +117,7 @@ export default function Home() {
       <Script src="https://unpkg.com/globe.gl" strategy="beforeInteractive" />
 
       {!loading && (
-        <main style={{padding: "20px", fontFamily: "Arial", background: bgColor, minHeight: "100vh", color: textColor, transition: "background 0.3s"}}>
+        <main style={{padding: "20px", fontFamily: "Arial", background: bgColor, minHeight: "100vh", color: textColor, transition: "all 0.3s"}}>
           <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
             <h1 style={{color: "#2563eb", fontSize: "32px", fontWeight: "bold"}}>Pulse360 India</h1>
             <button onClick={() => setDarkMode(!darkMode)} style={{fontSize: "16px", padding: "8px 16px", background: "#2563eb", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold"}}>
