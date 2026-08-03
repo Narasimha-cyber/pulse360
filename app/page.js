@@ -1,8 +1,7 @@
 "use client"
 import { useState, useEffect, useRef } from 'react'
-import LiveVisitors from '@/components/LiveVisitors'
-import IntroModal from '@/components/IntroModal'
-
+import LiveVisitors from '../components/LiveVisitors'
+import IntroModal from '../components/IntroModal'
 export default function Home() {
   const [allNews, setAllNews] = useState([]);
   const [apNews, setApNews] = useState([]);
