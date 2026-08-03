@@ -1,5 +1,6 @@
-'use client';
-import { useState, useEffect } from 'react';
+"use client"
+import { useState, useEffect } from 'react'
+import Script from 'next/script' // Idhi add cheyi
 
 export default function Home() {
   const [allNews, setAllNews] = useState([]);
@@ -73,8 +74,41 @@ export default function Home() {
   const cardColor = darkMode? '#1f2937' : 'white';
   const textColor = darkMode? '#e5e7eb' : '#111827';
   const adBg = darkMode? "#374151" : "#e5e7eb";
+  const [loading, setLoading] = useState(true)
+
+function GlobeIntro({onFinish}) {
+  const [show, setShow] = useState(true)
+  useEffect(() => {
+    setTimeout(() => {
+      setShow(false)
+      onFinish()
+    }, 4000)
+  }, [])
+  if(!show) return null
+  return (
+    <div style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'black', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}>
+      <div id="globeViz" style={{width: '100%', height: '80%'}}></div>
+      <h1 style={{color: 'white', fontSize: '40px', fontWeight: 'bold'}}>Pulse 360 NEWS</h1>
+      <p style={{color: '#d32f2f', fontSize: '18px'}}>From Space to Your Screen</p>
+    </div>
+  )
+}
+
+useEffect(() => {
+  if(!loading && window.Globe) {
+    const globe = Globe()
+     .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+     .pointOfView({ lat: 20.5937, lng: 78.9629, altitude: 2 }, 3000)
+      (document.getElementById('globeViz'))
+  }
+}, [loading])
 
   return (
+  <>
+    {loading && <GlobeIntro onFinish={() => setLoading(false)} />}
+    <Script src="https://unpkg.com/three@0.160.0/build/three.min.js" strategy="beforeInteractive" />
+    <Script src="https://unpkg.com/globe.gl" strategy="beforeInteractive" />
+    {!loading && (
     <main style={{padding: "20px", fontFamily: "Arial", background: bgColor, minHeight: "100vh", color: textColor}}>
       <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
         <h1 style={{color: "#2563eb", fontSize: "32px", fontWeight: "bold"}}>Pulse360 🇮🇳</h1>
@@ -105,6 +139,7 @@ export default function Home() {
           </div>
         </div>
       )}
+
       {/* FEATURED 3 NEWS CARDS WITH YOUR UPLOADED IMAGES */}
 <div style={{marginBottom: "40px", marginTop: "20px"}}>
   <h2 style={{fontSize: "24px", fontWeight: "bold", marginBottom: "20px", color: "#d32f2f"}}>🔥 Featured News</h2>
@@ -215,6 +250,8 @@ export default function Home() {
         <p style={{fontSize: "14px", marginBottom: "10px"}}><b>Pulse360 🇮🇳</b> - Your 24/7 News Source</p>
         <p style={{fontSize: "12px", color: "#888"}}>© 2026 Pulse360. All rights reserved. Made in ANDHRA PRADESH ❤️ NARASIMHA RAO KILLI </p>
       </footer>
+        )}
     </main>
+      </>
   )
 }
