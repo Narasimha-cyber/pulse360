@@ -7,7 +7,7 @@ export default function RootLayout({ children }) {
           <div className="container mx-auto px-4 py-3 flex items-center justify-between">
             
             {/* LOGO */}
-            <div className="w-[400px] h-12">
+            <div className="w-[220px] h-10">
               <img
                 src="/logo.png"
                 alt="Pulse 360 NEWS"
