@@ -110,7 +110,7 @@ export default function Home() {
   return (
     <>
       <IntroModal />
-      {showIntro && <VideoIntro onFinish={() => {}} />}
+   {/* {showIntro && <VideoIntro onFinish={() => {}} />} */}
 
       <main style={{padding: "20px", fontFamily: "Arial", background: bgColor, minHeight: "100vh", color: textColor, transition: "all 0.3s"}}>
 
