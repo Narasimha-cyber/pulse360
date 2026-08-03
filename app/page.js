@@ -42,7 +42,7 @@ export default function Home() {
       const timer = setTimeout(() => {
         setShowIntro(false)
         onFinish()
-      }, 5000)
+      }, 11000)
 
       return () => clearTimeout(timer)
     }, [])
@@ -54,15 +54,17 @@ export default function Home() {
         background: 'black', zIndex: 9999, display: 'flex',
         alignItems: 'center', justifyContent: 'center'
       }}>
-        <video
-          ref={videoRef}
-          src="/intro.mp4"
-          style={{width: '100%', height: '100%', objectFit: 'cover'}}
-          muted // MUST
-          autoPlay // MUST
-          playsInline // iPhone kosam MUST
-          preload="auto"
-        />
+      <video
+  ref={videoRef}
+  style={{width: '100%', height: '100%', objectFit: 'cover'}}
+  muted // MUST
+  autoPlay // MUST
+  playsInline // iPhone kosam MUST
+  loop
+  preload="auto"
+>
+  <source src="/intro.mp4" type="video/mp4" />
+</video>
         <div style={{position: 'absolute', bottom: '50px', textAlign: 'center', color: 'white'}}>
           <h1 style={{fontSize: '40px', textShadow: '0 0 20px #00aaff'}}>Pulse 360 NEWS</h1>
           <p style={{color: '#ffdd00'}}>From Space to Andhra Pradesh</p>
