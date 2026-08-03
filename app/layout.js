@@ -3,15 +3,15 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         {/* HEADER */}
-       <header style={{ background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', position: 'sticky', top: 0, zIndex: 50 }}>
-  <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 16px', display: 'flex', alignItems: 'center' }}>
+       <header className="bg-white shadow-sm sticky top-0 z-50">
+  <div className="w-full px-4 py-3 flex items-center justify-start">
     
-    {/* LOGO - FORCE 400PX NO MATTER WHAT */}
-    <div style={{ width: '400px !important', height: '80px !important', minWidth: '400px', flexShrink: 0 }}>
+    {/* LOGO - LEFT LO ANTE LEFT LO NE */}
+    <div style={{ width: '400px', height: '80px', flexShrink: 0 }}>
       <img
         src="/logo.png"
         alt="Pulse 360 NEWS"
-        style={{ width: '400px !important', height: '80px !important', objectFit: 'contain', display: 'block' }}
+        style={{ width: '400px', height: '80px', objectFit: 'contain', display: 'block' }}
       />
     </div>
 
