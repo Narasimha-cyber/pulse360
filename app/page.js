@@ -1,9 +1,11 @@
 "use client"
 import { useState, useEffect, useRef } from 'react'
+import LiveVisitors from '@/components/LiveVisitors'
+import IntroModal from '@/components/IntroModal'
 
 export default function Home() {
   const [allNews, setAllNews] = useState([]);
-  const [apNews, setApNews] = useState([]); // 👈 AP news separate
+  const [apNews, setApNews] = useState([]);
   const [filter, setFilter] = useState('All');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -13,7 +15,6 @@ export default function Home() {
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState({});
   const [showIntro, setShowIntro] = useState(false);
-  const [visitorCount, setVisitorCount] = useState(0);
   const videoRef = useRef(null);
   const hasPlayed = useRef(false);
 
@@ -25,17 +26,16 @@ export default function Home() {
         video.play().catch(err => console.log("Autoplay blocked:", err))
       }
     }, [])
-
     const handleVideoEnd = () => {
       setShowIntro(false);
       sessionStorage.setItem('pulse360_intro_seen', 'true');
+      document.body.style.overflow = 'auto'; // scroll enable
       onFinish();
     }
-
     if(!showIntro) return null
     return (
       <div style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'black', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-        <video ref={videoRef} src="/intro.mp4" style={{width: '100%', height: '100%', objectFit: 'cover'}} muted autoPlay playsInline onLoadedData={() => videoRef.current?.play()} onEnded={handleVideoEnd} preload="auto" />
+        <video ref={videoRef} src="/intro.mp4" style={{width: '100%', height: '100%', objectFit: 'cover'}} muted autoPlay playsInline onEnded={handleVideoEnd} preload="auto" />
         <div style={{position: 'absolute', bottom: '50px', textAlign: 'center', color: 'white'}}>
           <h1 style={{fontSize: '40px', textShadow: '0 0 20px #00aaff'}}>Pulse 360 NEWS</h1>
           <p style={{color: '#ffdd00'}}>From Space to Andhra Pradesh</p>
@@ -47,36 +47,61 @@ export default function Home() {
 
   useEffect(() => {
     const introSeen = sessionStorage.getItem('pulse360_intro_seen');
-    if(!introSeen) { setShowIntro(true); }
+    if(!introSeen) {
+      setShowIntro(true);
+      document.body.style.overflow = 'hidden'; // intro time lo scroll off
+    }
 
-    // 1. LIVE VISITORS COUNT
-    const namespace = 'pulse360';
-    const key = 'narasimha-live-v2'; // 👈 unique ga pettu
-    fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
-    .then(res => res.json())
-    .then(data => setVisitorCount(data.value))
-    .catch(() => setVisitorCount(100)) // fail ayte default
+    fetch('/api/news', {cache: 'no-store'}).then(res => res.json()).then(data => {
+      setAllNews(data.articles || data || []);
+      setLoading(false);
+    }).catch(() => setLoading(false))
 
-    // 2. LIVE NEWS FETCH - 2 times
-    setLoading(true);
-    // All India News
-    fetch('/api/news', {cache: 'no-store'}).then(res => res.json()).then(data => { setAllNews(data); setLoading(false); }).catch(() => setLoading(false))
-    // AP News Separate
-    fetch('/api/news?category=andhra').then(res => res.json()).then(data => { setApNews(data.slice(0,10)); }).catch(() => {})
+    fetch('/api/news?category=andhra').then(res => res.json()).then(data => {
+      setApNews((data.articles || data || []).slice(0,10));
+    }).catch(() => {})
 
     const saved = localStorage.getItem('pulse360_fav');
     if(saved) setFavorites(JSON.parse(saved));
   }, []);
 
-  useEffect(() => { localStorage.setItem('pulse360_fav', JSON.stringify(favorites)); }, [favorites]);
+  useEffect(() => {
+    localStorage.setItem('pulse360_fav', JSON.stringify(favorites));
+  }, [favorites]);
 
   const categories = ['All', 'General', 'Politics', 'Sports', 'Technology', 'Business', 'Telangana', 'Favorites'];
-  let filteredNews = filter === 'All'? allNews : filter === 'Favorites'? allNews.filter(news => favorites.includes(news.url)) : allNews.filter(news => news.category === filter);
-  if(search) { filteredNews = filteredNews.filter(news => news.title.toLowerCase().includes(search.toLowerCase()) || news.description.toLowerCase().includes(search.toLowerCase()) ) }
+  let filteredNews = filter === 'All'? allNews : filter === 'Favorites'? allNews.filter(news => favorites.includes(news.url)) : allNews.filter(news => news.source?.name?.toLowerCase().includes(filter.toLowerCase()));
 
-  const toggleFavorite = (url) => { if(favorites.includes(url)) { setFavorites(favorites.filter(f => f!== url)); } else { setFavorites([...favorites, url]); } }
-  const handleComment = () => { if(!comment.trim() ||!selectedNews) return; const newsComments = comments[selectedNews.url] || []; setComments({...comments, [selectedNews.url]: [...newsComments, comment]}); setComment(''); }
-  const handleShare = (news) => { if(navigator.share) { navigator.share({title: news.title, text: news.description, url: window.location.href}) } else { navigator.clipboard.writeText(window.location.href); alert('Link Copied') } }
+  if(search) {
+    filteredNews = filteredNews.filter(news =>
+      news.title?.toLowerCase().includes(search.toLowerCase()) ||
+      news.description?.toLowerCase().includes(search.toLowerCase())
+    )
+  }
+
+  const toggleFavorite = (url) => {
+    if(favorites.includes(url)) {
+      setFavorites(favorites.filter(f => f!== url));
+    } else {
+      setFavorites([...favorites, url]);
+    }
+  }
+
+  const handleComment = () => {
+    if(!comment.trim() ||!selectedNews) return;
+    const newsComments = comments[selectedNews.url] || [];
+    setComments({...comments, [selectedNews.url]: [...newsComments, comment]});
+    setComment('');
+  }
+
+  const handleShare = (news) => {
+    if(navigator.share) {
+      navigator.share({title: news.title, text: news.description, url: news.url})
+    } else {
+      navigator.clipboard.writeText(news.url);
+      alert('Link Copied')
+    }
+  }
 
   const bgColor = darkMode? '#111827' : '#f9fafb';
   const cardColor = darkMode? '#1f2937' : 'white';
@@ -85,23 +110,27 @@ export default function Home() {
 
   return (
     <>
+      <IntroModal />
       {showIntro && <VideoIntro onFinish={() => {}} />}
-      <main style={{padding: "20px", fontFamily: "Arial", background: bgColor, minHeight: "100vh", color: textColor, transition: "all 0.3s", display: showIntro? 'none' : 'block'}}>
+
+      <main style={{padding: "20px", fontFamily: "Arial", background: bgColor, minHeight: "100vh", color: textColor, transition: "all 0.3s"}}>
+
         <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px"}}>
           <div>
             <h1 style={{color: "#2563eb", fontSize: "32px", fontWeight: "bold", margin: 0}}>Pulse360 India</h1>
-            <p style={{fontSize: "14px", color: "#ef4444", marginTop: "5px", fontWeight: "bold"}}>🔥 {visitorCount.toLocaleString('en-IN')} Live Visitors</p>
+            <div style={{marginTop: "5px"}}><LiveVisitors /></div>
           </div>
           <button onClick={() => setDarkMode(!darkMode)} style={{fontSize: "16px", padding: "8px 16px", background: "#2563eb", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold"}}>{darkMode? 'Light Mode' : 'Dark Mode'}</button>
         </div>
+
         <nav style={{marginBottom: "20px", display: "flex", gap: "15px", justifyContent: "center"}}>
           <a href="/" style={{color: "#2563eb", fontWeight: "bold"}}>Home</a>
           <a href="/about" style={{color: "#2563eb"}}>About</a>
           <a href="/contact" style={{color: "#2563eb"}}>Contact</a>
         </nav>
+
         <div style={{width: "100%", height: "90px", background: adBg, borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "20px", border: "2px dashed #9ca3af"}}><p style={{color: "#888", fontSize: "14px"}}>728x90 Banner Ad Space</p></div>
 
-        {/* 2. LIVE TRENDING WITH THUMBNAILS */}
         {allNews.length > 0 && (
           <div style={{marginBottom: "30px"}}>
             <h2 style={{fontSize: "20px", marginBottom: "10px"}}>Trending Now</h2>
@@ -109,14 +138,13 @@ export default function Home() {
               {allNews.slice(0,5).map((news, i) => (
                 <div key={i} onClick={() => setSelectedNews(news)} style={{minWidth: "280px", background: cardColor, padding: "10px", borderRadius: "8px", cursor: "pointer", boxShadow: "0 2px 4px rgba(0,0,0,0.1)"}}>
                   {news.urlToImage && <img src={news.urlToImage} style={{width: "100%", height: "120px", objectFit: "cover", borderRadius: "6px", marginBottom: "8px"}} />}
-                  <p style={{fontSize: "14px", fontWeight: "bold"}}>{news.title.slice(0, 70)}...</p>
+                  <p style={{fontSize: "14px", fontWeight: "bold"}}>{news.title?.slice(0, 70)}...</p>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* 3. AP TOP 10 SEPARATE SECTION */}
         {apNews.length > 0 && (
           <div style={{marginBottom: "40px"}}>
             <h2 style={{fontSize: "24px", fontWeight: "bold", marginBottom: "20px", color: "#d32f2f"}}>Andhra Pradesh Top 10</h2>
@@ -134,15 +162,6 @@ export default function Home() {
           </div>
         )}
 
-        <div style={{marginBottom: "40px", marginTop: "20px"}}>
-          <h2 style={{fontSize: "24px", fontWeight: "bold", marginBottom: "20px", color: "#d32f2f"}}>Featured News</h2>
-          <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px"}}>
-            <div style={{border: "1px solid #ddd", borderRadius: "12px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", background: cardColor}}><img src="/news1.jpg" alt="AP Rains" style={{width: "100%", height: "200px", objectFit: "cover"}} /><div style={{padding: "16px"}}><p style={{fontSize: "12px", color: "#888"}}>2 hours ago</p><h3 style={{fontSize: "18px", fontWeight: "600", color: textColor}}>AP lo Heavy Rains: 3 districts alert</h3></div></div>
-            <div style={{border: "1px solid #ddd", borderRadius: "12px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", background: cardColor}}><img src="/news2.jpg" alt="CM Interview" style={{width: "100%", height: "200px", objectFit: "cover"}} /><div style={{padding: "16px"}}><p style={{fontSize: "12px", color: "#888"}}>5 hours ago</p><h3 style={{fontSize: "18px", fontWeight: "600", color: textColor}}>Pulse 360 Exclusive: CM tho Interview</h3></div></div>
-            <div style={{border: "1px solid #ddd", borderRadius: "12px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", background: cardColor}}><img src="/news3.jpg" alt="IPL Final" style={{width: "100%", height: "200px", objectFit: "cover"}} /><div style={{padding: "16px"}}><p style={{fontSize: "12px", color: "#888"}}>Yesterday</p><h3 style={{fontSize: "18px", fontWeight: "600", color: textColor}}>IPL Final: RCB vs GT Highlights</h3></div></div>
-          </div>
-        </div>
-
         {allNews.length > 0 && (<div style={{background: "#dc2626", color: "white", padding: "8px", borderRadius: "6px", marginBottom: "20px"}}><marquee><b>BREAKING:</b> {allNews[0].title}</marquee></div>)}
 
         <input type="text" placeholder="Search news..." value={search} onChange={(e) => setSearch(e.target.value)} style={{width: "100%", maxWidth: "500px", padding: "12px", borderRadius: "8px", border: "1px solid #ccc", margin: "0 auto 20px auto", display: "block", background: cardColor, color: textColor}} />
@@ -155,11 +174,11 @@ export default function Home() {
               <div key={i}>
                 {i > 0 && i % 4 === 0 && (<div style={{gridColumn: "1 / -1", width: "100%", height: "250px", background: adBg, borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", margin: "10px 0", border: "2px dashed #9ca3af"}}><p style={{color: "#888", fontSize: "14px"}}>300x250 In-Feed Ad Space</p></div>)}
                 <div style={{background: cardColor, padding: "15px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)"}}>
-                  <span style={{background: "#2563eb", color: "white", padding: "4px 10px", borderRadius: "12px", fontSize: "12px", textTransform: "uppercase"}}>{news.category}</span>
+                  <span style={{background: "#2563eb", color: "white", padding: "4px 10px", borderRadius: "12px", fontSize: "12px"}}>{news.source?.name}</span>
                   {news.urlToImage && <img src={news.urlToImage} style={{width: "100%", height: "180px", objectFit: "cover", borderRadius: "8px", marginTop: "10px"}} />}
                   <h3 style={{marginTop: "10px", fontSize: "16px"}}>{news.title}</h3>
                   <p style={{fontSize: "14px", color: darkMode? "#9ca3af" : "#555"}}>{news.description}</p>
-                  <p style={{fontSize: "12px", color: "#888"}}>{news.source.name} {new Date(news.publishedAt).toLocaleDateString('en-IN')}</p>
+                  <p style={{fontSize: "12px", color: "#888"}}>{new Date(news.publishedAt).toLocaleDateString('en-IN')}</p>
                   <div style={{display: "flex", gap: "10px", marginTop: "10px"}}>
                     <button onClick={() => setSelectedNews(news)} style={{flex: 1, background: "#2563eb", color: "white", border: "none", padding: "8px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold"}}>Read More</button>
                     <button onClick={() => toggleFavorite(news.url)} style={{background: favorites.includes(news.url)? "red" : adBg, color: textColor, border: "none", padding: "8px 12px", borderRadius: "6px", cursor: "pointer", fontSize: "14px"}}>{favorites.includes(news.url)? 'Fav' : 'Add'}</button>
@@ -171,9 +190,12 @@ export default function Home() {
           </div>
         )}
 
-        {selectedNews && (<div onClick={() => setSelectedNews(null)} style={{position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px"}}><div onClick={(e) => e.stopPropagation()} style={{background: cardColor, borderRadius: "12px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", padding: "20px"}}><button onClick={() => setSelectedNews(null)} style={{float: "right", fontSize: "24px", background: "none", border: "none", cursor: "pointer"}}>X</button><span style={{background: "#2563eb", color: "white", padding: "4px 10px", borderRadius: "12px", fontSize: "12px"}}>{selectedNews.category}</span>{selectedNews.urlToImage && <img src={selectedNews.urlToImage} style={{width: "100%", borderRadius: "8px", marginTop: "15px"}} />}<h2 style={{marginTop: "15px"}}>{selectedNews.title}</h2><p style={{fontSize: "14px", color: "#888"}}>{selectedNews.source.name} {new Date(selectedNews.publishedAt).toLocaleString('en-IN')}</p><p style={{marginTop: "15px", lineHeight: "1.6"}}>{selectedNews.description}</p><button onClick={() => handleShare(selectedNews)} style={{marginTop: "15px", background: "#25D366", color: "white", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold"}}>Share</button><div style={{marginTop: "30px", borderTop: "1px solid #ccc", paddingTop: "20px"}}><h3>Comments</h3><div style={{display: "flex", gap: "10px", marginTop: "10px"}}><input value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Write a comment..." style={{flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #ccc", background: cardColor, color: textColor}}/><button onClick={handleComment} style={{background: "#2563eb", color: "white", border: "none", padding: "10px 15px", borderRadius: "6px", cursor: "pointer"}}>Post</button></div><div style={{marginTop: "15px"}}>{(comments[selectedNews.url] || []).map((c, i) => <p key={i} style={{background: adBg, padding: "8px", borderRadius: "6px", marginTop: "8px"}}>{c}</p>)}</div></div></div></div>)}
+        {selectedNews && (<div onClick={() => setSelectedNews(null)} style={{position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px", overflowY: 'auto'}}><div onClick={(e) => e.stopPropagation()} style={{background: cardColor, borderRadius: "12px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", padding: "20px"}}><button onClick={() => setSelectedNews(null)} style={{float: "right", fontSize: "24px", background: "none", border: "none", cursor: "pointer"}}>X</button><span style={{background: "#2563eb", color: "white", padding: "4px 10px", borderRadius: "12px", fontSize: "12px"}}>{selectedNews.source?.name}</span>{selectedNews.urlToImage && <img src={selectedNews.urlToImage} style={{width: "100%", borderRadius: "8px", marginTop: "15px"}} />}<h2 style={{marginTop: "15px"}}>{selectedNews.title}</h2><p style={{fontSize: "14px", color: "#888"}}>{new Date(selectedNews.publishedAt).toLocaleString('en-IN')}</p><p style={{marginTop: "15px", lineHeight: "1.6"}}>{selectedNews.description}</p><button onClick={() => handleShare(selectedNews)} style={{marginTop: "15px", background: "#25D366", color: "white", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold"}}>Share</button><div style={{marginTop: "30px", borderTop: "1px solid #ccc", paddingTop: "20px"}}><h3>Comments</h3><div style={{display: "flex", gap: "10px", marginTop: "10px"}}><input value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Write a comment..." style={{flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #ccc", background: cardColor, color: textColor}}/><button onClick={handleComment} style={{background: "#2563eb", color: "white", border: "none", padding: "10px 15px", borderRadius: "6px", cursor: "pointer"}}>Post</button></div><div style={{marginTop: "15px"}}>{(comments[selectedNews.url] || []).map((c, i) => <p key={i} style={{background: adBg, padding: "8px", borderRadius: "6px", marginTop: "8px"}}>{c}</p>)}</div></div></div></div>)}
 
-        <footer style={{marginTop: "50px", padding: "30px 20px", background: adBg, textAlign: "center", borderRadius: "12px 12px 0 0"}}><p style={{fontSize: "14px", marginBottom: "10px"}}><b>Pulse360 India</b> - Your 24/7 News Source</p><p style={{fontSize: "12px", color: "#888"}}>{"Copyright 2026 Pulse360 All rights reserved Made in ANDHRA PRADESH - NARASIMHA RAO KILLI"}</p></footer>
+        <footer style={{marginTop: "50px", padding: "30px 20px", background: adBg, textAlign: "center", borderRadius: "12px 12px 0 0"}}>
+          <p style={{fontSize: "14px", marginBottom: "10px"}}><b>Pulse360 India</b> - Your 24/7 News Source</p>
+          <p style={{fontSize: "12px", color: "#888"}}>Copyright 2026 Pulse360 All rights reserved Made in ANDHRA PRADESH - NARASIMHA RAO KILLI</p>
+        </footer>
       </main>
     </>
   )
