@@ -7,7 +7,7 @@ export default function RootLayout({ children }) {
         <div className="container mx-auto px-4 py-3 flex items-center">
     
        {/* LOGO - FORCE BIG SIZE */}
-     <div style={{ width: '400px', height: '70px', flexShrink: 0 }}>
+     <div style={{ width: '900px', height: '80px', flexShrink: 0 }}>
       <img
        src="/logo.png"
        alt="Pulse 360 NEWS"
