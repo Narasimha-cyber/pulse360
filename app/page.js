@@ -14,32 +14,37 @@ export default function Home() {
   const [showIntro, setShowIntro] = useState(true);
   const videoRef = useRef(null);
 
-  function VideoIntro({onFinish}) {
+ function VideoIntro({onFinish}) {
     useEffect(() => {
       const video = videoRef.current;
-      let fallbackTimer;
-
+      
       if(video) {
         // Video ayyaka close
         video.onended = () => {
-          clearTimeout(fallbackTimer)
           setShowIntro(false)
           onFinish()
         }
 
-        // Autoplay try cheyadam
-        video.play().catch((err) => {
-          console.log("Autoplay blocked", err)
-        })
-
-        // 60 sec fallback - video load avvakapothe
-        fallbackTimer = setTimeout(() => {
+        // Error aithe alert
+        video.onerror = () => {
+          alert("Video load avvaledu. File check cheyi: /public/intro.mp4")
           setShowIntro(false)
           onFinish()
-        }, 60000)
+        }
+
+        // Force ga play cheyadam
+        video.play().catch(() => {
+          console.log("Autoplay blocked, 5 sec tarvata close chestha")
+        })
       }
 
-      return () => clearTimeout(fallbackTimer)
+      // 5 sec fallback - video stuck aithe
+      const timer = setTimeout(() => {
+        setShowIntro(false)
+        onFinish()
+      }, 5000)
+
+      return () => clearTimeout(timer)
     }, [])
 
     if(!showIntro) return null
@@ -51,16 +56,16 @@ export default function Home() {
       }}>
         <video
           ref={videoRef}
-          src="/intro.mp4" // public folder lo undali
+          src="/intro.mp4"
           style={{width: '100%', height: '100%', objectFit: 'cover'}}
-          muted // sound off - autoplay kosam must
-          autoPlay // automatic play
-          playsInline // mobile kosam
+          muted // MUST
+          autoPlay // MUST
+          playsInline // iPhone kosam MUST
           preload="auto"
         />
-        <div style={{position: 'absolute', bottom: '50px', textAlign: 'center'}}>
-          <h1 style={{color: 'white', fontSize: '40px', fontWeight: 'bold', textShadow: '0 0 20px #00aaff'}}>Pulse 360 NEWS</h1>
-          <p style={{color: '#ffdd00', fontSize: '18px'}}>From Space to Andhra Pradesh</p>
+        <div style={{position: 'absolute', bottom: '50px', textAlign: 'center', color: 'white'}}>
+          <h1 style={{fontSize: '40px', textShadow: '0 0 20px #00aaff'}}>Pulse 360 NEWS</h1>
+          <p style={{color: '#ffdd00'}}>From Space to Andhra Pradesh</p>
           <button
             onClick={() => {setShowIntro(false); onFinish()}}
             style={{marginTop: '10px', padding: '8px 20px', background: 'white', color: 'black', border: 'none', borderRadius: '8px', cursor: 'pointer'}}
