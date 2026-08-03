@@ -12,7 +12,24 @@ export default function Home() {
   const [favorites, setFavorites] = useState([]);
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState({});
-
+ 
+  function GlobeIntro({onFinish}) {
+  const [show, setShow] = useState(true)
+  useEffect(() => {
+    setTimeout(() => {
+      setShow(false)
+      onFinish()
+    }, 4000)
+  }, [])
+  if(!show) return null
+  return (
+    <div style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'black', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}>
+      <div id="globeViz" style={{width: '100%', height: '80%'}}></div>
+      <h1 style={{color: 'white', fontSize: '40px', fontWeight: 'bold'}}>Pulse 360 NEWS</h1>
+      <p style={{color: '#d32f2f', fontSize: '18px'}}>From Space to Y</p>
+    </div>
+  )
+}
   useEffect(() => {
     setLoading(true);
     fetch('/api/news', {cache: 'no-store'})
@@ -30,7 +47,20 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem('pulse360_fav', JSON.stringify(favorites));
   }, [favorites]);
-
+  
+  useEffect(() => {
+  if(!loading) {
+    const timer = setTimeout(() => {
+      if(window.Globe) {
+        const globe = Globe()
+      .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+      .pointOfView({ lat: 20.5937, lng: 78.9629, altitude: 2 }, 3000)
+          (document.getElementById('globeViz'))
+      }
+    }, 100)
+    return () => clearTimeout(timer)
+  }
+}, [loading]);
   const categories = ['All', 'General', 'Politics', 'Sports', 'Technology', 'Business', 'Telangana', 'Favorites'];
 
   let filteredNews = filter === 'All'
@@ -74,26 +104,7 @@ export default function Home() {
   const cardColor = darkMode? '#1f2937' : 'white';
   const textColor = darkMode? '#e5e7eb' : '#111827';
   const adBg = darkMode? "#374151" : "#e5e7eb";
-  const [loading, setLoading] = useState(true)
-
-function GlobeIntro({onFinish}) {
-  const [show, setShow] = useState(true)
-  useEffect(() => {
-    setTimeout(() => {
-      setShow(false)
-      onFinish()
-    }, 4000)
-  }, [])
-  if(!show) return null
-  return (
-    <div style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'black', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}>
-      <div id="globeViz" style={{width: '100%', height: '80%'}}></div>
-      <h1 style={{color: 'white', fontSize: '40px', fontWeight: 'bold'}}>Pulse 360 NEWS</h1>
-      <p style={{color: '#d32f2f', fontSize: '18px'}}>From Space to Your Screen</p>
-    </div>
-  )
-}
-
+ 
 useEffect(() => {
   if(!loading && window.Globe) {
     const globe = Globe()
