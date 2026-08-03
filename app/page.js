@@ -11,10 +11,10 @@ export default function Home() {
   const [favorites, setFavorites] = useState([]);
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState({});
-  const [showIntro, setShowIntro] = useState(false); // 👈 false tho start chey
+  const [showIntro, setShowIntro] = useState(false);
   const [visitorCount, setVisitorCount] = useState(0);
   const videoRef = useRef(null);
-  const hasPlayed = useRef(false); // 👈 Double play aagodaniki
+  const hasPlayed = useRef(false);
 
   function VideoIntro({onFinish}) {
     useEffect(() => {
@@ -27,7 +27,7 @@ export default function Home() {
 
     const handleVideoEnd = () => {
       setShowIntro(false);
-      localStorage.setItem('pulse360_intro_seen', 'true'); // 👈 Chusanu ani save
+      sessionStorage.setItem('pulse360_intro_seen', 'true'); // 👈 localStorage -> sessionStorage
       onFinish();
     }
 
@@ -45,8 +45,8 @@ export default function Home() {
   }
 
   useEffect(() => {
-    // 👈 Page load ayyaka check chey
-    const introSeen = localStorage.getItem('pulse360_intro_seen');
+    // 👈 sessionStorage use chesam
+    const introSeen = sessionStorage.getItem('pulse360_intro_seen');
     if(!introSeen) {
       setShowIntro(true);
     }
