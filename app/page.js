@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 
 export default function Home() {
   const [allNews, setAllNews] = useState([]);
+  const [apNews, setApNews] = useState([]); // 👈 AP news separate
   const [filter, setFilter] = useState('All');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -27,7 +28,7 @@ export default function Home() {
 
     const handleVideoEnd = () => {
       setShowIntro(false);
-      sessionStorage.setItem('pulse360_intro_seen', 'true'); // 👈 localStorage -> sessionStorage
+      sessionStorage.setItem('pulse360_intro_seen', 'true');
       onFinish();
     }
 
@@ -45,15 +46,24 @@ export default function Home() {
   }
 
   useEffect(() => {
-    // 👈 sessionStorage use chesam
     const introSeen = sessionStorage.getItem('pulse360_intro_seen');
-    if(!introSeen) {
-      setShowIntro(true);
-    }
+    if(!introSeen) { setShowIntro(true); }
 
-    fetch('https://api.countapi.xyz/hit/pulse360-narasimha/visits').then(res => res.json()).then(data => setVisitorCount(data.value)).catch(() => {})
+    // 1. LIVE VISITORS COUNT
+    const namespace = 'pulse360';
+    const key = 'narasimha-live-v2'; // 👈 unique ga pettu
+    fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
+    .then(res => res.json())
+    .then(data => setVisitorCount(data.value))
+    .catch(() => setVisitorCount(100)) // fail ayte default
+
+    // 2. LIVE NEWS FETCH - 2 times
     setLoading(true);
+    // All India News
     fetch('/api/news', {cache: 'no-store'}).then(res => res.json()).then(data => { setAllNews(data); setLoading(false); }).catch(() => setLoading(false))
+    // AP News Separate
+    fetch('/api/news?category=andhra').then(res => res.json()).then(data => { setApNews(data.slice(0,10)); }).catch(() => {})
+
     const saved = localStorage.getItem('pulse360_fav');
     if(saved) setFavorites(JSON.parse(saved));
   }, []);
@@ -80,7 +90,7 @@ export default function Home() {
         <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px"}}>
           <div>
             <h1 style={{color: "#2563eb", fontSize: "32px", fontWeight: "bold", margin: 0}}>Pulse360 India</h1>
-            <p style={{fontSize: "14px", color: "#ef4444", marginTop: "5px", fontWeight: "bold"}}>🔥 {visitorCount.toLocaleString('en-IN')} Visitors</p>
+            <p style={{fontSize: "14px", color: "#ef4444", marginTop: "5px", fontWeight: "bold"}}>🔥 {visitorCount.toLocaleString('en-IN')} Live Visitors</p>
           </div>
           <button onClick={() => setDarkMode(!darkMode)} style={{fontSize: "16px", padding: "8px 16px", background: "#2563eb", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold"}}>{darkMode? 'Light Mode' : 'Dark Mode'}</button>
         </div>
@@ -90,7 +100,40 @@ export default function Home() {
           <a href="/contact" style={{color: "#2563eb"}}>Contact</a>
         </nav>
         <div style={{width: "100%", height: "90px", background: adBg, borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "20px", border: "2px dashed #9ca3af"}}><p style={{color: "#888", fontSize: "14px"}}>728x90 Banner Ad Space</p></div>
-        {allNews.length > 0 && (<div style={{marginBottom: "30px"}}><h2 style={{fontSize: "20px", marginBottom: "10px"}}>Trending Now</h2><div style={{display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "10px"}}>{allNews.slice(0,5).map((news, i) => (<div key={i} onClick={() => setSelectedNews(news)} style={{minWidth: "250px", background: cardColor, padding: "10px", borderRadius: "8px", cursor: "pointer", boxShadow: "0 2px 4px rgba(0,0,0,0.1)"}}><p style={{fontSize: "14px", fontWeight: "bold"}}>{news.title.slice(0, 60)}...</p></div>))}</div></div>)}
+
+        {/* 2. LIVE TRENDING WITH THUMBNAILS */}
+        {allNews.length > 0 && (
+          <div style={{marginBottom: "30px"}}>
+            <h2 style={{fontSize: "20px", marginBottom: "10px"}}>Trending Now</h2>
+            <div style={{display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "10px"}}>
+              {allNews.slice(0,5).map((news, i) => (
+                <div key={i} onClick={() => setSelectedNews(news)} style={{minWidth: "280px", background: cardColor, padding: "10px", borderRadius: "8px", cursor: "pointer", boxShadow: "0 2px 4px rgba(0,0,0,0.1)"}}>
+                  {news.urlToImage && <img src={news.urlToImage} style={{width: "100%", height: "120px", objectFit: "cover", borderRadius: "6px", marginBottom: "8px"}} />}
+                  <p style={{fontSize: "14px", fontWeight: "bold"}}>{news.title.slice(0, 70)}...</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 3. AP TOP 10 SEPARATE SECTION */}
+        {apNews.length > 0 && (
+          <div style={{marginBottom: "40px"}}>
+            <h2 style={{fontSize: "24px", fontWeight: "bold", marginBottom: "20px", color: "#d32f2f"}}>Andhra Pradesh Top 10</h2>
+            <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px"}}>
+              {apNews.map((news, i) => (
+                <div key={i} onClick={() => setSelectedNews(news)} style={{border: "2px solid #d32f2f", borderRadius: "12px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", background: cardColor, cursor: "pointer"}}>
+                  {news.urlToImage && <img src={news.urlToImage} alt={news.title} style={{width: "100%", height: "180px", objectFit: "cover"}} />}
+                  <div style={{padding: "16px"}}>
+                    <p style={{fontSize: "12px", color: "#d32f2f", fontWeight: "bold"}}>TOP {i+1}</p>
+                    <h3 style={{fontSize: "16px", fontWeight: "600", color: textColor}}>{news.title}</h3>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div style={{marginBottom: "40px", marginTop: "20px"}}>
           <h2 style={{fontSize: "24px", fontWeight: "bold", marginBottom: "20px", color: "#d32f2f"}}>Featured News</h2>
           <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px"}}>
