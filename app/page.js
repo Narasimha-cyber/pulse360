@@ -37,34 +37,29 @@ export default function Home() {
           console.log("Autoplay blocked, 5 sec tarvata close chestha")
         })
       }
-
-      // 5 sec fallback - video stuck aithe
-      const timer = setTimeout(() => {
-        setShowIntro(false)
-        onFinish()
-      }, 50000)
-
-      return () => clearTimeout(timer)
-    }, [])
-
-    if(!showIntro) return null
+      useEffect(() => {
+      if (videoRef.current) {
+       videoRef.current.play().catch(() => {})
+  }
+}, [])
+    
+  if(!showIntro) return null
     return (
       <div style={{
         position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
         background: 'black', zIndex: 9999, display: 'flex',
         alignItems: 'center', justifyContent: 'center'
       }}>
-      <video
+     <video
   ref={videoRef}
+  src="/intro.mp4"
   style={{width: '100%', height: '100%', objectFit: 'cover'}}
-  muted // MUST
-  autoPlay // MUST
-  playsInline // iPhone kosam MUST
-  loop
+  muted
+  autoPlay
+  playsInline
+  onEnded={() => {setShowIntro(false); onFinish()}}
   preload="auto"
->
-  <source src="/intro.mp4" type="video/mp4" />
-</video>
+/>
         <div style={{position: 'absolute', bottom: '50px', textAlign: 'center', color: 'white'}}>
           <h1 style={{fontSize: '40px', textShadow: '0 0 20px #00aaff'}}>Pulse 360 NEWS</h1>
           <p style={{color: '#ffdd00'}}>From Space to Andhra Pradesh</p>
