@@ -1,115 +1,124 @@
-"use client"
-import { useState, useEffect } from 'react'
-import LiveVisitors from '../components/LiveVisitors'
-import IntroModal from '../components/IntroModal'
+'use client';
+import { useState, useEffect } from 'react';
 
 export default function HomePage() {
-  const [darkMode, setDarkMode] = useState(false);
+  const [filter, setFilter] = useState('top');
   const [allNews, setAllNews] = useState([]);
-  const [filter, setFilter] = useState('all');
-
-  const bgColor = darkMode ? '#111' : '#fff';
-  const textColor = darkMode ? '#fff' : '#000';
-  const cardBg = darkMode ? '#222' : '#f9f9f9';
-  const adBg = darkMode ? '#222' : '#f0f0f0';
+  const [selectedNews, setSelectedNews] = useState(null);
+  const [comments, setComments] = useState({});
+  const [commentText, setCommentText] = useState('');
 
   useEffect(() => {
-  let apiUrl = '/api/news';
-  if(filter === 'andhra') apiUrl = '/api/news?type=andhra';
-  if(filter === 'sports') apiUrl = '/api/news?type=sports';
-  if(filter === 'national') apiUrl = '/api/news?type=national';
+    setAllNews([]);
+    let apiUrl = '/api/news';
+    if(filter === 'andhra') apiUrl = '/api/news?type=andhra';
+    if(filter === 'sports') apiUrl = '/api/news?type=sports';
 
-  fetch(apiUrl)
-   .then(res => res.json())
-   .then(data => setAllNews(data.articles || []))
-   .catch(err => console.log(err))
-}, [filter]); // 👈 filter change ayyina malli call avvali
+    fetch(apiUrl)
+  .then(res => res.json())
+  .then(data => setAllNews(data.articles || []))
+  .catch(err => console.log(err))
+  }, [filter]);
 
-  const filteredNews = filter === 'all' 
-    ? allNews 
-    : allNews.filter(news => news.category === filter);
+  // WhatsApp share
+  const shareWhatsApp = (title, url) => {
+    const text = `*${title}*\n\n${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  }
 
-  const topNews = allNews.slice(0, 10);
-  const breakingNews = allNews.slice(0, 5);
+  // Comment add
+  const addComment = (id) => {
+    if(!commentText.trim()) return;
+    const newComments = {...comments};
+    if(!newComments[id]) newComments[id] = [];
+    newComments[id].push(commentText);
+    setComments(newComments);
+    setCommentText('');
+    localStorage.setItem('newsComments', JSON.stringify(newComments));
+  }
+
+  // LocalStorage nunchi comments load
+  useEffect(()=>{
+    const saved = localStorage.getItem('newsComments');
+    if(saved) setComments(JSON.parse(saved));
+  },[])
 
   return (
-    <>
-      <IntroModal />
-      
-      <main style={{padding: "20px", fontFamily: "Arial", background: bgColor, minHeight: "100vh", color: textColor, transition: "all 0.3s"}}>
-        
-        {/* Header */}
-        <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px"}}>
+    <div className="bg-black text-white min-h-screen flex flex-col">
+      {/* HEADER */}
+      <header className="sticky top-0 bg-black p-4 border-b border-gray-800 z-10">
+        <h1 className="text-2xl font-bold text-red-500">Pulse360</h1>
+        <div className="flex gap-4 mt-3">
+          <button onClick={()=>{setFilter('top'); setSelectedNews(null)}} className={`px-4 py-2 rounded-full ${filter==='top'?'bg-red-600':'bg-gray-800'}`}>Home</button>
+          <button onClick={()=>{setFilter('andhra'); setSelectedNews(null)}} className={`px-4 py-2 rounded-full ${filter==='andhra'?'bg-red-600':'bg-gray-800'}`}>AP News</button>
+          <button onClick={()=>{setFilter('sports'); setSelectedNews(null)}} className={`px-4 py-2 rounded-full ${filter==='sports'?'bg-red-600':'bg-gray-800'}`}>Sports</button>
+        </div>
+      </header>
+
+      <div className="max-w-6xl mx-auto p-4 flex-1 w-full">
+        {/* NEWS DETAIL PAGE */}
+        {selectedNews? (
           <div>
-            <h1 style={{color: "#2563eb", fontSize: "32px", fontWeight: "bold", margin: 0}}>Pulse360 India</h1>
-            <div style={{marginTop: "5px"}}><LiveVisitors /></div>
-          </div>
-          <button onClick={() => setDarkMode(!darkMode)} style={{fontSize: "16px", padding: "8px 16px", background: "#2563eb", color: "white", border: "none", borderRadius: "5px", cursor: "pointer"}}>
-            {darkMode ? '☀️ Light' : '🌙 Dark'}
-          </button>
-        </div>
+            <button onClick={()=>setSelectedNews(null)} className="mb-4 px-4 py-2 bg-gray-800 rounded">← Back</button>
+            <img src={selectedNews.image} className="w-full h-80 object-cover rounded-xl"/>
+            <h2 className="text-3xl font-bold mt-4">{selectedNews.title}</h2>
+            <p className="text-gray-400 text-sm mt-2">{selectedNews.source?.name} • {new Date(selectedNews.publishedAt).toLocaleString()}</p>
+            <p className="mt-4 text-lg leading-8">{selectedNews.description}</p>
+            <p className="mt-4">{selectedNews.content}</p>
 
-        {/* Nav */}
-        <nav style={{marginBottom: "20px", display: "flex", gap: "15px", justifyContent: "center", flexWrap: "wrap"}}>
-          <a href="#" onClick={() => setFilter('all')} style={{color: "#2563eb", fontWeight: "bold", textDecoration: "none"}}>Home</a>
-          <a href="#" onClick={() => setFilter('andhra')} style={{color: "#2563eb", textDecoration: "none"}}>AP News</a>
-          <a href="#" onClick={() => setFilter('sports')} style={{color: "#2563eb", textDecoration: "none"}}>Sports</a>
-          <a href="#" onClick={() => setFilter('national')} style={{color: "#2563eb", textDecoration: "none"}}>National</a>
-        </nav>
+            {/* SHARE + COMMENTS */}
+            <div className="mt-6 flex gap-4 flex-wrap">
+              <button onClick={()=>shareWhatsApp(selectedNews.title, selectedNews.url)} className="px-4 py-2 bg-green-600 rounded-lg">📲 WhatsApp Share</button>
+              <a href={selectedNews.url} target="_blank" className="px-4 py-2 bg-gray-800 rounded-lg">Original Source</a>
+            </div>
 
-        {/* Ad Banner */}
-        <div style={{width: "100%", height: "90px", background: adBg, borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "20px", fontWeight: "bold"}}>
-          Your Ad Here
-        </div>
-
-        {/* Breaking News */}
-        {breakingNews.length > 0 && (
-          <div style={{marginBottom: "30px"}}>
-            <h2 style={{color: "red", fontSize: "24px"}}>🔥 Breaking News</h2>
-            <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "15px"}}>
-              {breakingNews.map((news, i) => (
-                <div key={i} style={{border: "1px solid #ccc", borderRadius: "8px", padding: "10px", background: cardBg}}>
-                  {news.image && <img src={news.image} alt="" style={{width: "100%", height: "150px", objectFit: "cover", borderRadius: "5px"}}/>}
-                  <h3 style={{fontSize: "16px", marginTop: "10px"}}>{news.title}</h3>
-                  <p style={{fontSize: "12px", color: "gray"}}>{news.source?.name}</p>
-                </div>
-              ))}
+            <div className="mt-8 border-t border-gray-800 pt-4">
+              <h3 className="text-xl font-bold">Comments</h3>
+              <div className="flex gap-2 mt-3">
+                <input
+                  value={commentText}
+                  onChange={e=>setCommentText(e.target.value)}
+                  placeholder="Write a comment..."
+                  className="flex-1 p-2 bg-gray-900 rounded"
+                />
+                <button onClick={()=>addComment(selectedNews.url)} className="px-4 bg-red-600 rounded">Post</button>
+              </div>
+              <div className="mt-4 space-y-2">
+                {(comments[selectedNews.url] || []).map((c,i)=>(
+                  <div key={i} className="bg-gray-900 p-2 rounded">{c}</div>
+                ))}
+              </div>
             </div>
           </div>
-        )}
-
-        {/* Top 10 */}
-        {topNews.length > 0 && (
-          <div style={{marginBottom: "30px"}}>
-            <h2 style={{color: "#2563eb", fontSize: "24px"}}>📰 Top 10 News</h2>
-            {topNews.map((news, i) => (
-              <div key={i} style={{display: "flex", gap: "15px", marginBottom: "15px", padding: "10px", borderBottom: "1px solid #ddd", background: cardBg, borderRadius: "8px"}}>
-                {news.image && <img src={news.image} alt="" style={{width: "120px", height: "80px", objectFit: "cover", borderRadius: "5px"}}/>}
-                <div>
-                  <h3 style={{margin: 0, fontSize: "16px"}}>{news.title}</h3>
-                  <p style={{fontSize: "12px", color: "gray", margin: "5px 0 0 0"}}>{news.source?.name}</p>
+        ) : (
+          /* NEWS GRID */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {allNews.length === 0? <p>Loading news...</p> :
+              allNews.map((article, i) => (
+                <div
+                  key={i}
+                  onClick={()=>setSelectedNews(article)}
+                  className="bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:scale-[1.02] transition cursor-pointer"
+                >
+                  <img src={article.image || 'https://via.placeholder.com/400x250'} className="w-full h-48 object-cover"/>
+                  <div className="p-4">
+                    <p className="text-xs text-gray-400">{article.source?.name}</p>
+                    <h3 className="text-lg font-bold mt-1 line-clamp-2">{article.title}</h3>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            }
           </div>
         )}
+      </div>
 
-        {allNews.length === 0 && <p style={{textAlign: "center"}}>Loading news...</p>}
-
-        {/* Footer */}
-        <footer style={{marginTop: "40px", padding: "20px", textAlign: "center", borderTop: "2px solid #2563eb", background: cardBg, borderRadius: "8px"}}>
-          <h3 style={{color: "#2563eb", margin: "0 0 10px 0"}}>Pulse360 India</h3>
-          <p style={{margin: "5px 0", fontSize: "14px"}}>From Space to Andhra Pradesh</p>
-          <p style={{margin: "5px 0", fontSize: "14px"}}>© 2026 Andhra Pradesh. All Rights Reserved.</p>
-          <p style={{margin: "5px 0", fontSize: "14px", fontWeight: "bold"}}>Developed by: Narasimha Rao Killi</p>
-          <div style={{marginTop: "10px", fontSize: "12px", color: "gray"}}>
-            <a href="#" style={{color: "#2563eb", margin: "0 10px"}}>About</a>
-            <a href="#" style={{color: "#2563eb", margin: "0 10px"}}>Contact</a>
-            <a href="#" style={{color: "#2563eb", margin: "0 10px"}}>Privacy</a>
-          </div>
-        </footer>
-
-      </main>
-    </>
+      {/* FOOTER */}
+      <footer className="bg-gray-950 border-t border-gray-800 mt-10">
+        <div className="max-w-6xl mx-auto p-6 text-center">
+          <p className="text-gray-400">© 2026 Pulse360 - Andhra Pradesh. All Rights Reserved.</p>
+          <p className="text-sm text-gray-500 mt-2">Developed by Narasimha Rao Killi </p>
+        </div>
+      </footer>
+    </div>
   )
 }
