@@ -11,7 +11,8 @@ export default function Home() {
   const [favorites, setFavorites] = useState([]);
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState({});
-  const [showIntro, setShowIntro] = useState(true); // ← Idi separate ga undali
+  const [showIntro, setShowIntro] = useState(true);
+  const [visitorCount, setVisitorCount] = useState(0); // ← VISITOR COUNT
   const videoRef = useRef(null);
 
   function VideoIntro({onFinish}) {
@@ -53,14 +54,22 @@ export default function Home() {
   }
 
   useEffect(() => {
+    // 1. VISITOR COUNT PENCHADAM
+    fetch('https://api.countapi.xyz/hit/pulse360-narasimha/visits')
+     .then(res => res.json())
+     .then(data => setVisitorCount(data.value))
+     .catch(() => {})
+
+    // 2. NEWS FETCH
     setLoading(true);
     fetch('/api/news', {cache: 'no-store'})
    .then(res => res.json())
    .then(data => {
         setAllNews(data);
-        setLoading(false); // ← News loading aipoindi, kani intro inka undochu
+        setLoading(false);
       })
    .catch(() => setLoading(false))
+
     const saved = localStorage.getItem('pulse360_fav');
     if(saved) setFavorites(JSON.parse(saved));
   }, []);
@@ -106,23 +115,33 @@ export default function Home() {
 
   return (
     <>
-      {showIntro && <VideoIntro onFinish={() => {}} />} {/* ← Ikkada change chesa */}
+      {showIntro && <VideoIntro onFinish={() => {}} />}
 
       <main style={{padding: "20px", fontFamily: "Arial", background: bgColor, minHeight: "100vh", color: textColor, transition: "all 0.3s", display: showIntro? 'none' : 'block'}}>
-        <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-          <h1 style={{color: "#2563eb", fontSize: "32px", fontWeight: "bold"}}>Pulse360 India</h1>
+
+        {/* HEADER WITH VISITOR COUNT */}
+        <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px"}}>
+          <div>
+            <h1 style={{color: "#2563eb", fontSize: "32px", fontWeight: "bold", margin: 0}}>Pulse360 India</h1>
+            <p style={{fontSize: "14px", color: "#ef4444", marginTop: "5px", fontWeight: "bold"}}>
+              🔥 {visitorCount.toLocaleString('en-IN')} Visitors
+            </p>
+          </div>
           <button onClick={() => setDarkMode(!darkMode)} style={{fontSize: "16px", padding: "8px 16px", background: "#2563eb", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold"}}>
             {darkMode? 'Light Mode' : 'Dark Mode'}
           </button>
         </div>
+
         <nav style={{marginBottom: "20px", display: "flex", gap: "15px", justifyContent: "center"}}>
           <a href="/" style={{color: "#2563eb", fontWeight: "bold"}}>Home</a>
           <a href="/about" style={{color: "#2563eb"}}>About</a>
           <a href="/contact" style={{color: "#2563eb"}}>Contact</a>
         </nav>
+
         <div style={{width: "100%", height: "90px", background: adBg, borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "20px", border: "2px dashed #9ca3af"}}>
           <p style={{color: "#888", fontSize: "14px"}}>728x90 Banner Ad Space</p>
         </div>
+
         {allNews.length > 0 && (
           <div style={{marginBottom: "30px"}}>
             <h2 style={{fontSize: "20px", marginBottom: "10px"}}>Trending Now</h2>
@@ -135,6 +154,7 @@ export default function Home() {
             </div>
           </div>
         )}
+
         <div style={{marginBottom: "40px", marginTop: "20px"}}>
           <h2 style={{fontSize: "24px", fontWeight: "bold", marginBottom: "20px", color: "#d32f2f"}}>Featured News</h2>
           <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px"}}>
@@ -161,12 +181,15 @@ export default function Home() {
             </div>
           </div>
         </div>
+
         {allNews.length > 0 && (
           <div style={{background: "#dc2626", color: "white", padding: "8px", borderRadius: "6px", marginBottom: "20px"}}>
             <marquee><b>BREAKING:</b> {allNews[0].title}</marquee>
           </div>
         )}
+
         <input type="text" placeholder="Search news..." value={search} onChange={(e) => setSearch(e.target.value)} style={{width: "100%", maxWidth: "500px", padding: "12px", borderRadius: "8px", border: "1px solid #ccc", margin: "0 auto 20px auto", display: "block", background: cardColor, color: textColor}} />
+
         <div style={{display: "flex", gap: "10px", justifyContent: "center", marginBottom: "30px", flexWrap: "wrap"}}>
           {categories.map(cat => (
             <button key={cat} onClick={() => setFilter(cat)} style={{padding: "8px 16px", borderRadius: "20px", border: "none", background: filter === cat? "#2563eb" : adBg, color: filter === cat? "white" : textColor, fontWeight: "bold", cursor: "pointer"}}>
@@ -174,6 +197,7 @@ export default function Home() {
             </button>
           ))}
         </div>
+
         {loading? <p style={{textAlign: "center", fontSize: "18px"}}>Loading news...</p> : filteredNews.length === 0? <p style={{textAlign: "center", color: "#888"}}>No news found</p> : (
           <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px"}}>
             {filteredNews.map((news, i) => (
@@ -201,6 +225,7 @@ export default function Home() {
             ))}
           </div>
         )}
+
         {selectedNews && (
           <div onClick={() => setSelectedNews(null)} style={{position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px"}}>
             <div onClick={(e) => e.stopPropagation()} style={{background: cardColor, borderRadius: "12px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", padding: "20px"}}>
@@ -224,6 +249,7 @@ export default function Home() {
             </div>
           </div>
         )}
+
         <footer style={{marginTop: "50px", padding: "30px 20px", background: adBg, textAlign: "center", borderRadius: "12px 12px 0 0"}}>
           <p style={{fontSize: "14px", marginBottom: "10px"}}><b>Pulse360 India</b> - Your 24/7 News Source</p>
           <p style={{fontSize: "12px", color: "#888"}}>{"Copyright 2026 Pulse360 All rights reserved Made in ANDHRA PRADESH - NARASIMHA RAO KILLI"}</p>
