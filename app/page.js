@@ -16,21 +16,30 @@ export default function Home() {
 
   function VideoIntro({onFinish}) {
     useEffect(() => {
-      // Video ayyaka automatic ga close
       const video = videoRef.current;
+      let fallbackTimer;
+
       if(video) {
+        // Video ayyaka close
         video.onended = () => {
+          clearTimeout(fallbackTimer)
           setShowIntro(false)
           onFinish()
         }
-        video.play().catch(() => {
-          // Autoplay block ayithe 60 sec tarvata close
-          setTimeout(() => {
-            setShowIntro(false)
-            onFinish()
-          }, 60000)
+
+        // Autoplay try cheyadam
+        video.play().catch((err) => {
+          console.log("Autoplay blocked", err)
         })
+
+        // 60 sec fallback - video load avvakapothe
+        fallbackTimer = setTimeout(() => {
+          setShowIntro(false)
+          onFinish()
+        }, 60000)
       }
+
+      return () => clearTimeout(fallbackTimer)
     }, [])
 
     if(!showIntro) return null
@@ -42,14 +51,22 @@ export default function Home() {
       }}>
         <video
           ref={videoRef}
-          src="/intro.mp4"
+          src="/intro.mp4" // public folder lo undali
           style={{width: '100%', height: '100%', objectFit: 'cover'}}
-          muted
-          playsInline
+          muted // sound off - autoplay kosam must
+          autoPlay // automatic play
+          playsInline // mobile kosam
+          preload="auto"
         />
         <div style={{position: 'absolute', bottom: '50px', textAlign: 'center'}}>
           <h1 style={{color: 'white', fontSize: '40px', fontWeight: 'bold', textShadow: '0 0 20px #00aaff'}}>Pulse 360 NEWS</h1>
           <p style={{color: '#ffdd00', fontSize: '18px'}}>From Space to Andhra Pradesh</p>
+          <button
+            onClick={() => {setShowIntro(false); onFinish()}}
+            style={{marginTop: '10px', padding: '8px 20px', background: 'white', color: 'black', border: 'none', borderRadius: '8px', cursor: 'pointer'}}
+          >
+            Skip Intro
+          </button>
         </div>
       </div>
     )
@@ -58,12 +75,12 @@ export default function Home() {
   useEffect(() => {
     setLoading(true);
     fetch('/api/news', {cache: 'no-store'})
-  .then(res => res.json())
-  .then(data => {
+ .then(res => res.json())
+ .then(data => {
         setAllNews(data);
         setLoading(false);
       })
-  .catch(() => setLoading(false))
+ .catch(() => setLoading(false))
     const saved = localStorage.getItem('pulse360_fav');
     if(saved) setFavorites(JSON.parse(saved));
   }, []);
