@@ -2,20 +2,20 @@
 import { useState, useEffect } from 'react'
 
 export default function LiveVisitors() {
-  const [count, setCount] = useState(() => Math.floor(Math.random() * 50) + 30)
+  const [count, setCount] = useState(100);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCount(prev => prev + Math.floor(Math.random() * 3) + 1)
-    }, Math.random() * 10000 + 5000)
-
-    return () => clearInterval(interval)
-  }, [])
+    const namespace = 'pulse360';
+    const key = 'narasimha-live-v2';
+    fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
+      .then(res => res.json())
+      .then(data => setCount(data.value))
+      .catch(() => setCount(100))
+  }, []);
 
   return (
-    <div className="flex items-center gap-2 bg-red-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold animate-pulse">
-      <span className="w-2 h-2 bg-white rounded-full"></span>
-      {count} Live Visitors
-    </div>
+    <p style={{fontSize: "14px", color: "#ef4444", fontWeight: "bold", margin: 0}}>
+      🔥 {count.toLocaleString('en-IN')} Live Visitors
+    </p>
   )
 }
