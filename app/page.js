@@ -9,7 +9,7 @@ export default function HomePage() {
   const [comments, setComments] = useState({});
   const [commentText, setCommentText] = useState('');
   const [darkMode, setDarkMode] = useState(true);
-
+  const [breakingNews, setBreakingNews] = useState('');
   useEffect(() => {
     if(darkMode){
       document.documentElement.classList.add('dark')
@@ -29,6 +29,9 @@ export default function HomePage() {
   .then(res => res.json())
   .then(data => {
       setAllNews(data.articles || []);
+      // Top 3 news ni breaking news ga kalupu
+      const headlines = (data.articles || []).slice(0,3).map(a => a.title).join('  ***  ');
+      setBreakingNews(headlines);
       setLoading(false);
     })
   .catch(err => {
@@ -87,7 +90,7 @@ export default function HomePage() {
 {/* BREAKING NEWS TICKER */}
       <div style={{width:'100%', overflow:'hidden', background:'#ef4444', color:'#fff', padding:'8px 0', fontWeight:'bold'}}>
         <div style={{display:'inline-block', whiteSpace:'nowrap', paddingLeft:'100%', animation:'scroll-left 20s linear infinite'}}>
-          🔥 Breaking: Pulse360 lo ippudu Live News, AP News, Sports anni okate chotla!
+          {breakingNews || '🔥 Loading Breaking News...'}
         </div>
       </div>
             <style>{`
