@@ -14,11 +14,16 @@ export default function HomePage() {
   const adBg = darkMode ? '#222' : '#f0f0f0';
 
   useEffect(() => {
-    fetch('/api/news')
-      .then(res => res.json())
-      .then(data => setAllNews(data.articles || []))
-      .catch(err => console.log(err))
-  }, []);
+  let apiUrl = '/api/news';
+  if(filter === 'andhra') apiUrl = '/api/news?type=andhra';
+  if(filter === 'sports') apiUrl = '/api/news?type=sports';
+  if(filter === 'national') apiUrl = '/api/news?type=national';
+
+  fetch(apiUrl)
+   .then(res => res.json())
+   .then(data => setAllNews(data.articles || []))
+   .catch(err => console.log(err))
+}, [filter]); // 👈 filter change ayyina malli call avvali
 
   const filteredNews = filter === 'all' 
     ? allNews 
