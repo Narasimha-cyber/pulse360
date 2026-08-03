@@ -10,7 +10,7 @@ export default function RootLayout({ children }) {
     width: '400px',
     height: '80px',
     backgroundImage: 'url(/logo.png)',
-    backgroundSize: 'contain',
+    backgroundSize: '200%',
     backgroundRepeat: 'no-repeat',
     backgroundPosition: 'left center'
   }}></div>
