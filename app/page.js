@@ -244,7 +244,7 @@ useEffect(() => {
             <button onClick={() => handleShare(selectedNews)} style={{marginTop: "15px", background: "#25D366", color: "white", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold"}}>📤 Share</button>
 
             <div style={{marginTop: "30px", borderTop: "1px solid #ccc", paddingTop: "20px"}}>
-              <h3>Comments 💬</h3>
+              <h3>Comments </h3>
               <div style={{display: "flex", gap: "10px", marginTop: "10px"}}>
                 <input value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Write a comment..." style={{flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #ccc", background: cardColor, color: textColor}}/>
                 <button onClick={handleComment} style={{background: "#2563eb", color: "white", border: "none", padding: "10px 15px", borderRadius: "6px", cursor: "pointer"}}>Post</button>
