@@ -22,7 +22,12 @@ export default function Home() {
         video.play().catch(err => console.log("Autoplay blocked:", err))
       }
     }, [])
-    const handleVideoEnd = () => { setShowIntro(false); onFinish(); }
+
+    const handleVideoEnd = () => {
+      setShowIntro(false); // 👈 First off chesi
+      onFinish();
+    }
+
     if(!showIntro) return null
     return (
       <div style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'black', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
@@ -85,9 +90,13 @@ export default function Home() {
             <div style={{border: "1px solid #ddd", borderRadius: "12px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", background: cardColor}}><img src="/news3.jpg" alt="IPL Final" style={{width: "100%", height: "200px", objectFit: "cover"}} /><div style={{padding: "16px"}}><p style={{fontSize: "12px", color: "#888"}}>Yesterday</p><h3 style={{fontSize: "18px", fontWeight: "600", color: textColor}}>IPL Final: RCB vs GT Highlights</h3></div></div>
           </div>
         </div>
+
         {allNews.length > 0 && (<div style={{background: "#dc2626", color: "white", padding: "8px", borderRadius: "6px", marginBottom: "20px"}}><marquee><b>BREAKING:</b> {allNews[0].title}</marquee></div>)}
+
         <input type="text" placeholder="Search news..." value={search} onChange={(e) => setSearch(e.target.value)} style={{width: "100%", maxWidth: "500px", padding: "12px", borderRadius: "8px", border: "1px solid #ccc", margin: "0 auto 20px auto", display: "block", background: cardColor, color: textColor}} />
+
         <div style={{display: "flex", gap: "10px", justifyContent: "center", marginBottom: "30px", flexWrap: "wrap"}}>{categories.map(cat => (<button key={cat} onClick={() => setFilter(cat)} style={{padding: "8px 16px", borderRadius: "20px", border: "none", background: filter === cat? "#2563eb" : adBg, color: filter === cat? "white" : textColor, fontWeight: "bold", cursor: "pointer"}}>{cat} {cat === 'Favorites' && `(${favorites.length})`}</button>))}</div>
+
         {loading? <p style={{textAlign: "center", fontSize: "18px"}}>Loading news...</p> : filteredNews.length === 0? <p style={{textAlign: "center", color: "#888"}}>No news found</p> : (
           <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px"}}>
             {filteredNews.map((news, i) => (
@@ -109,7 +118,9 @@ export default function Home() {
             ))}
           </div>
         )}
+
         {selectedNews && (<div onClick={() => setSelectedNews(null)} style={{position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px"}}><div onClick={(e) => e.stopPropagation()} style={{background: cardColor, borderRadius: "12px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", padding: "20px"}}><button onClick={() => setSelectedNews(null)} style={{float: "right", fontSize: "24px", background: "none", border: "none", cursor: "pointer"}}>X</button><span style={{background: "#2563eb", color: "white", padding: "4px 10px", borderRadius: "12px", fontSize: "12px"}}>{selectedNews.category}</span>{selectedNews.urlToImage && <img src={selectedNews.urlToImage} style={{width: "100%", borderRadius: "8px", marginTop: "15px"}} />}<h2 style={{marginTop: "15px"}}>{selectedNews.title}</h2><p style={{fontSize: "14px", color: "#888"}}>{selectedNews.source.name} {new Date(selectedNews.publishedAt).toLocaleString('en-IN')}</p><p style={{marginTop: "15px", lineHeight: "1.6"}}>{selectedNews.description}</p><button onClick={() => handleShare(selectedNews)} style={{marginTop: "15px", background: "#25D366", color: "white", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold"}}>Share</button><div style={{marginTop: "30px", borderTop: "1px solid #ccc", paddingTop: "20px"}}><h3>Comments</h3><div style={{display: "flex", gap: "10px", marginTop: "10px"}}><input value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Write a comment..." style={{flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #ccc", background: cardColor, color: textColor}}/><button onClick={handleComment} style={{background: "#2563eb", color: "white", border: "none", padding: "10px 15px", borderRadius: "6px", cursor: "pointer"}}>Post</button></div><div style={{marginTop: "15px"}}>{(comments[selectedNews.url] || []).map((c, i) => <p key={i} style={{background: adBg, padding: "8px", borderRadius: "6px", marginTop: "8px"}}>{c}</p>)}</div></div></div></div>)}
+
         <footer style={{marginTop: "50px", padding: "30px 20px", background: adBg, textAlign: "center", borderRadius: "12px 12px 0 0"}}><p style={{fontSize: "14px", marginBottom: "10px"}}><b>Pulse360 India</b> - Your 24/7 News Source</p><p style={{fontSize: "12px", color: "#888"}}>{"Copyright 2026 Pulse360 All rights reserved Made in ANDHRA PRADESH - NARASIMHA RAO KILLI"}</p></footer>
       </main>
     </>
