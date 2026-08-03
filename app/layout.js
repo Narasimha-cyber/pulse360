@@ -3,34 +3,18 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         {/* HEADER */}
-       <header style={{ 
-  background: 'white', 
-  boxShadow: '0 2px 4px rgba(0,0,0,0.1)', 
-  position: 'sticky', 
-  top: 0, 
-  zIndex: 50,
-  width: '100%'
-}}>
-  <div style={{ 
-    padding: '16px 24px', 
-    display: 'flex', 
-    alignItems: 'center',
-    justifyContent: 'flex-start'
-  }}>
-    
-    {/* LOGO - FORCE WITH IMPORTANT */}
-    <img
-      src="/logo.png"
-      alt="Pulse 360 NEWS"
-      style={{ 
-        width: '400px', 
-        height: '80px', 
-        objectFit: 'contain', 
-        display: 'block'
-      }}
-    />
+      <header style={{ background: 'white', padding: '16px 24px', borderBottom: '1px solid #eee' }}>
+  
+  {/* IMG TAG KI BADULU DIV WITH BACKGROUND */}
+  <div style={{
+    width: '400px',
+    height: '80px',
+    backgroundImage: 'url(/logo.png)',
+    backgroundSize: 'contain',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'left center'
+  }}></div>
 
-  </div>
 </header>
         {/* PAGE CONTENT */}
         {children}
