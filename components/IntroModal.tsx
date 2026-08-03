@@ -2,28 +2,31 @@
 import { useState, useEffect } from 'react'
 
 export default function IntroModal() {
-  const [show, setShow] = useState(false)
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
-    const visited = localStorage.getItem('intro_shown_v2')
-    if(!visited) {
-      setTimeout(() => setShow(true), 500)
-      localStorage.setItem('intro_shown_v2', 'true')
-    }
-  }, [])
+    // prathi refresh ki chupinchali ante ee line use chey
+    setShow(true); 
+    
+    // 1st time matrame chupinchali ante ee 3 lines use chey
+    // const seen = sessionStorage.getItem('pulse360_intro_seen');
+    // if(!seen) setShow(true);
+  }, []);
 
-  if(!show) return null
+  const handleClose = () => {
+    setShow(false);
+    sessionStorage.setItem('pulse360_intro_seen', 'true');
+  }
+
+  if(!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
-      <div className="bg-white p-8 rounded-2xl max-w-md text-center shadow-2xl">
-        <h2 className="text-3xl font-bold mb-3 text-red-600">AP News Live 🔥</h2>
-        <p className="mb-6 text-gray-600">Real-time News, AP Top 10, and Live Visitors</p>
-        <button
-          onClick={() => setShow(false)}
-          className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition"
-        >
-          Start Reading
+    <div style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.95)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+      <div style={{textAlign: 'center', color: 'white'}}>
+        <h1 style={{fontSize: '50px', color: '#00aaff', textShadow: '0 0 20px #00aaff'}}>🌍 Pulse 360 NEWS</h1>
+        <p style={{color: '#ffdd00', fontSize: '18px'}}>From Space to Andhra Pradesh</p>
+        <button onClick={handleClose} style={{marginTop: '20px', padding: '12px 30px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px'}}>
+          Enter Site
         </button>
       </div>
     </div>
