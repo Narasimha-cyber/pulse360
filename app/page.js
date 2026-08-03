@@ -105,7 +105,38 @@ export default function Home() {
           </div>
         </div>
       )}
+      {/* FEATURED 3 NEWS CARDS WITH YOUR UPLOADED IMAGES */}
+<div style={{marginBottom: "40px", marginTop: "20px"}}>
+  <h2 style={{fontSize: "24px", fontWeight: "bold", marginBottom: "20px", color: "#d32f2f"}}>🔥 Featured News</h2>
+  
+  <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px"}}>
+    
+    <div style={{border: "1px solid #ddd", borderRadius: "12px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0.1)", background: cardColor}}>
+      <img src="/news1.jpg" alt="AP Rains" style={{width: "100%", height: "200px", objectFit: "cover"}} />
+      <div style={{padding: "16px"}}>
+        <p style={{fontSize: "12px", color: "#888"}}>2 hours ago</p>
+        <h3 style={{fontSize: "18px", fontWeight: "600", color: textColor}}>AP lo Heavy Rains: 3 districts alert</h3>
+      </div>
+    </div>
 
+    <div style={{border: "1px solid #ddd", borderRadius: "12px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", background: cardColor}}>
+      <img src="/news2.jpg" alt="CM Interview" style={{width: "100%", height: "200px", objectFit: "cover"}} />
+      <div style={{padding: "16px"}}>
+        <p style={{fontSize: "12px", color: "#888"}}>5 hours ago</p>
+        <h3 style={{fontSize: "18px", fontWeight: "600", color: textColor}}>Pulse 360 Exclusive: CM tho Interview</h3>
+      </div>
+    </div>
+
+    <div style={{border: "1px solid #ddd", borderRadius: "12px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", background: cardColor}}>
+      <img src="/news3.jpg" alt="IPL Final" style={{width: "100%", height: "200px", objectFit: "cover"}} />
+      <div style={{padding: "16px"}}>
+        <p style={{fontSize: "12px", color: "#888"}}>Yesterday</p>
+        <h3 style={{fontSize: "18px", fontWeight: "600", color: textColor}}>IPL Final: RCB vs GT Highlights</h3>
+      </div>
+    </div>
+
+  </div>
+</div>
       {allNews.length > 0 && (
         <div style={{background: "#dc2626", color: "white", padding: "8px", borderRadius: "6px", marginBottom: "20px"}}><marquee><b>BREAKING:</b> {allNews[0].title}</marquee></div>
       )}
