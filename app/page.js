@@ -259,7 +259,7 @@ useEffect(() => {
 
       <footer style={{marginTop: "50px", padding: "30px 20px", background: adBg, textAlign: "center", borderRadius: "12px 12px 0 0"}}>
         <p style={{fontSize: "14px", marginBottom: "10px"}}><b>Pulse360 🇮🇳</b> - Your 24/7 News Source</p>
-        <p style={{fontSize: "12px", color: "#888"}}>&copy; 2026 Pulse360. All rights reserved. Made in ANDHRA PRADESH ❤️ NARASIMHA RAO KILLI </p>
+        <p style={{fontSize: "12px", color: "#888"}}>Copyright 2026 Pulse360. All rights reserved. Made in ANDHRA PRADESH - NARASIMHA RAO KILLI</p>
       </footer>
     </main>
       </>
