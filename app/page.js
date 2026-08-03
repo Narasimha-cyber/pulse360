@@ -84,7 +84,18 @@ export default function HomePage() {
           </button>
         </div>
       </header>
-
+{/* BREAKING NEWS TICKER */}
+      <div style={{width:'100%', overflow:'hidden', background:'#ef4444', color:'#fff', padding:'8px 0', fontWeight:'bold'}}>
+        <div style={{display:'inline-block', whiteSpace:'nowrap', paddingLeft:'100%', animation:'scroll-left 20s linear infinite'}}>
+          🔥 Breaking: Pulse360 lo ippudu Live News, AP News, Sports anni okate chotla!
+        </div>
+      </div>
+            <style>{`
+        @keyframes scroll-left {
+          0% { transform: translateX(0%); }
+          100% { transform: translateX(-100%); }
+        }
+      `}</style>
       <div style={{maxWidth:'1200px', margin:'0 auto', padding:'20px', flex:1, width:'100%'}}>
 
         {selectedNews? (
@@ -156,7 +167,7 @@ export default function HomePage() {
       <footer style={{background: darkMode? '#020202' : '#f3f3f3', borderTop:`1px solid ${darkMode? '#222' : '#ddd'}`, marginTop:'40px'}}>
         <div style={{maxWidth:'1200px', margin:'0 auto', textAlign:'center', padding:'20px'}}>
           <p style={{color:'#9ca3af', fontSize:'14px', margin:0}}>© 2026 Pulse360. All rights reserved.</p>
-          <p style={{color:'#6b7280', fontSize:'12px', margin:'8px 0 0'}}>Made with ❤️ in India</p>
+          <p style={{color:'#6b7280', fontSize:'12px', margin:'8px 0 0'}}>Made with ❤️ in INDIA - ANDHRA PRADESH - NARASIMHA RAO KILLI ❤️ </p>
         </div>
       </footer>
     </div>
