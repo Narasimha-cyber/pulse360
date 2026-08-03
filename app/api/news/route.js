@@ -1,34 +1,23 @@
 export async function GET(request) {
-  const { searchParams } = new URL(request.url)
-  const category = searchParams.get("category")
+  const API_KEY = "842b7bc5d353481baa9d29ee833fe47e";
 
-  const API_KEY = "918b260d09e849499aa4aca07a24205e" // nee gnews key
+  // URL nunchi?type=andhra ani teeskuntam
+  const { searchParams } = new URL(request.url);
+  const type = searchParams.get('type') || 'top';
 
-  let url = `https://gnews.io/api/v4/top-headlines?lang=en&country=in&max=50&apikey=${API_KEY}`
+  let query = '';
+  if(type === 'andhra') query = 'Andhra Pradesh OR AP';
+  if(type === 'sports') query = 'sports';
+  if(type === 'national') query = 'India';
 
-  if(category === 'andhra'){
-    url = `https://gnews.io/api/v4/search?q=andhra pradesh OR amaravati OR vijayawada OR tirupati OR visakhapatnam&lang=en&country=in&max=10&sortby=publishedAt&apikey=${API_KEY}`
-  }
+  const searchQuery = query? `&q=${query}` : '';
 
   try {
-    const res = await fetch(url, { cache: 'no-store' })
-    const data = await res.json()
-
-    if(data.articles) {
-      const articles = data.articles.map(article => ({
-        title: article.title,
-        description: article.description,
-        url: article.url,
-        urlToImage: article.image, // gnews uses 'image'
-        publishedAt: article.publishedAt,
-        source: { name: article.source.name },
-        category: category === 'andhra'? 'Andhra' : 'General'
-      }))
-      return Response.json(articles)
-    }
-    return Response.json({articles: []})
+    const url = `https://gnews.io/api/v4/top-headlines?lang=en&country=in&max=20${searchQuery}&apikey=${API_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return Response.json(data);
   } catch (error) {
-    console.log("API Error:", error)
-    return Response.json({articles: []})
+    return Response.json({ articles: [] });
   }
 }
