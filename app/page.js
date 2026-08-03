@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 
 export default function HomePage() {
   const [filter, setFilter] = useState('top');
@@ -8,9 +8,8 @@ export default function HomePage() {
   const [selectedNews, setSelectedNews] = useState(null);
   const [comments, setComments] = useState({});
   const [commentText, setCommentText] = useState('');
-  const [darkMode, setDarkMode] = useState(true); // Line 9
+  const [darkMode, setDarkMode] = useState(true);
 
-  // Dark mode useEffect
   useEffect(() => {
     if(darkMode){
       document.documentElement.classList.add('dark')
@@ -19,7 +18,6 @@ export default function HomePage() {
     }
   }, [darkMode]);
 
-  // News Fetch
   useEffect(() => {
     setLoading(true);
     setAllNews([]);
@@ -28,24 +26,22 @@ export default function HomePage() {
     if(filter === 'sports') apiUrl = '/api/news?type=sports';
 
     fetch(apiUrl)
-   .then(res => res.json())
-   .then(data => {
+  .then(res => res.json())
+  .then(data => {
       setAllNews(data.articles || []);
       setLoading(false);
     })
-   .catch(err => {
+  .catch(err => {
       console.log(err);
       setLoading(false);
     })
   }, [filter]);
 
-  // WhatsApp share
   const shareWhatsApp = (title, url) => {
     const text = `*Pulse360 News*\n\n${title}\n\n${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   }
 
-  // Comment add
   const addComment = (id) => {
     if(!commentText.trim()) return;
     const newComments = {...comments};
@@ -56,13 +52,11 @@ export default function HomePage() {
     localStorage.setItem('newsComments', JSON.stringify(newComments));
   }
 
-  // Load comments from localStorage
   useEffect(()=>{
     const saved = localStorage.getItem('newsComments');
     if(saved) setComments(JSON.parse(saved));
   },[])
 
-  // Ad Component
   const AdsBanner = () => (
     <div style={{gridColumn:'1/-1', margin:'24px 0', padding:'24px', background: darkMode? '#111' : '#f3f3f3', border:'2px dashed #444', borderRadius:'12px', textAlign:'center'}}>
       <p style={{fontSize:'12px', color:'#888', marginBottom:'8px'}}>Advertisement</p>
@@ -73,47 +67,38 @@ export default function HomePage() {
   );
 
   return (
-    <div style={{background: darkMode? '#000' : '#fff', color: darkMode? '#fff' : '#000', minHeight:'100vh', display:'flex', flexDirection:'column'}}> {/* Line 56 */}
+    <div style={{background: darkMode? '#000' : '#fff', color: darkMode? '#fff' : '#000', minHeight:'100vh', display:'flex', flexDirection:'column'}}>
 
-      {/* HEADER */}
-      <header style={{position:'sticky', top:0, background: darkMode? '#000' : '#fff', padding:'16px 20px', borderBottom:`1px solid ${darkMode? '#222' : '#ddd'}`}}>
+      <header style={{position:'sticky', top:0, background: darkMode? '#000' : '#fff', padding:'16px 20px', borderBottom:`1px solid ${darkMode? '#222' : '#ddd'}`, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap'}}>
         <h1 style={{fontSize:'28px', fontWeight:'bold', color:'#ef4444', margin:0}}>Pulse360</h1>
-        <div style={{display:'flex', gap:'12px', marginTop:'12px', flexWrap:'wrap'}}>
+        
+        <div style={{display:'flex', gap:'12px', alignItems:'center', marginTop:'10px'}}>
           <button onClick={()=>{setFilter('top'); setSelectedNews(null)}} style={{padding:'8px 16px', background: filter==='top'? '#ef4444' : (darkMode? '#222' : '#eee'), color: darkMode? '#fff' : '#000', border:'none', borderRadius:'8px', cursor:'pointer'}}>Home</button>
           <button onClick={()=>{setFilter('andhra'); setSelectedNews(null)}} style={{padding:'8px 16px', background: filter==='andhra'? '#ef4444' : (darkMode? '#222' : '#eee'), color: darkMode? '#fff' : '#000', border:'none', borderRadius:'8px', cursor:'pointer'}}>AP News</button>
           <button onClick={()=>{setFilter('sports'); setSelectedNews(null)}} style={{padding:'8px 16px', background: filter==='sports'? '#ef4444' : (darkMode? '#222' : '#eee'), color: darkMode? '#fff' : '#000', border:'none', borderRadius:'8px', cursor:'pointer'}}>Sports</button>
-
-          {/* Dark/Light Toggle Button */}
           <button
             onClick={()=>setDarkMode(!darkMode)}
-            style={{marginLeft:'auto', padding:'8px', borderRadius:'50%', background: darkMode? '#333' : '#eee', border:'none', cursor:'pointer'}}
+            style={{padding:'8px', borderRadius:'50%', background: darkMode? '#333' : '#eee', border:'none', cursor:'pointer', fontSize:'20px'}}
           >
-           {darkMode? '☀️' : '🌙'}
+            {darkMode? '☀️' : '🌙'}
           </button>
         </div>
       </header>
 
-      {/* MAIN CONTENT */}
       <div style={{maxWidth:'1200px', margin:'0 auto', padding:'20px', flex:1, width:'100%'}}>
 
-        {/* NEWS DETAIL PAGE */}
         {selectedNews? (
           <div style={{maxWidth:'900px', margin:'0 auto'}}>
             <button onClick={()=>setSelectedNews(null)} style={{marginBottom:'16px', padding:'8px 16px', background: darkMode? '#222' : '#eee', color: darkMode? '#fff' : '#000', border:'none', borderRadius:'8px', cursor:'pointer'}}>← Back</button>
-
             <img src={selectedNews.image || 'https://via.placeholder.com/800x400'} style={{width:'100%', borderRadius:'12px'}}/>
             <h2 style={{fontSize:'32px', fontWeight:'bold', marginTop:'20px', lineHeight:'1.3'}}>{selectedNews.title}</h2>
             <p style={{color:'#9ca3af', fontSize:'14px', marginTop:'10px'}}>{selectedNews.publishedAt}</p>
             <p style={{marginTop:'20px', fontSize:'18px', lineHeight:'1.8'}}>{selectedNews.description}</p>
             <p style={{marginTop:'10px', color:'#d1d5db', lineHeight:'1.7'}}>{selectedNews.content}</p>
-
-            {/* WHATSAPP SHARE BUTTON */}
             <div style={{marginTop:'24px', display:'flex', gap:'12px', flexWrap:'wrap'}}>
               <button onClick={()=>shareWhatsApp(selectedNews.title, selectedNews.url)} style={{padding:'10px 20px', background:'#25D366', color:'#fff', border:'none', borderRadius:'8px', cursor:'pointer'}}>Share on WhatsApp</button>
               <a href={selectedNews.url} target="_blank" rel="noopener noreferrer" style={{padding:'10px 20px', background: darkMode? '#222' : '#eee', color: darkMode? '#fff' : '#000', borderRadius:'8px', textDecoration:'none'}}>Read Full Article</a>
             </div>
-
-            {/* COMMENT BOX */}
             <div style={{marginTop:'40px', borderTop:`1px solid ${darkMode? '#222' : '#ddd'}`, paddingTop:'20px'}}>
               <h3 style={{fontSize:'22px', fontWeight:'bold', marginBottom:'16px'}}>Comments</h3>
               <div style={{display:'flex', gap:'10px', marginBottom:'20px'}}>
@@ -122,7 +107,6 @@ export default function HomePage() {
                   onChange={e=>setCommentText(e.target.value)}
                   placeholder="Write your comment..."
                   style={{flex:1, padding:'12px', background: darkMode? '#111' : '#f3f3f3', border:`1px solid ${darkMode? '#333' : '#ccc'}`, borderRadius:'8px', color: darkMode? '#fff' : '#000'}}
-                  onKeyPress={e => e.key === 'Enter' && addComment(selectedNews.url)}
                 />
                 <button onClick={()=>addComment(selectedNews.url)} style={{padding:'12px 20px', background:'#ef4444', color:'#fff', border:'none', borderRadius:'8px', cursor:'pointer'}}>Post</button>
               </div>
@@ -138,7 +122,6 @@ export default function HomePage() {
             </div>
           </div>
         ) : (
-          /* NEWS GRID - FIXED HEIGHT CARDS */
           <div>
             {loading?
               <p style={{textAlign:'center', fontSize:'18px', marginTop:'50px'}}>Loading...</p>:
@@ -146,7 +129,7 @@ export default function HomePage() {
                 {allNews.length === 0?
                   <p style={{textAlign:'center', gridColumn:'1/-1'}}>No news found</p>:
                   allNews.map((article, i) => (
-                    <React.Fragment key={i}>
+                    <Fragment key={i}>
                       <div
                         onClick={()=>setSelectedNews(article)}
                         style={{background: darkMode? '#111' : '#f9f9f9', borderRadius:'12px', overflow:'hidden', cursor:'pointer', border:`1px solid ${darkMode? '#222' : '#ddd'}`}}
@@ -160,9 +143,8 @@ export default function HomePage() {
                           <p style={{fontSize:'14px', color:'#d1d5db', margin:0}}>{article.description?.slice(0,100)}...</p>
                         </div>
                       </div>
-                      {/* Prati 4 cards ki oka Ad */}
                       {(i + 1) % 4 === 0 && <AdsBanner />}
-                    </React.Fragment>
+                    </Fragment>
                   ))
                 }
               </div>
@@ -171,11 +153,10 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* FOOTER */}
       <footer style={{background: darkMode? '#020202' : '#f3f3f3', borderTop:`1px solid ${darkMode? '#222' : '#ddd'}`, marginTop:'40px'}}>
         <div style={{maxWidth:'1200px', margin:'0 auto', textAlign:'center', padding:'20px'}}>
           <p style={{color:'#9ca3af', fontSize:'14px', margin:0}}>© 2026 Pulse360. All rights reserved.</p>
-          <p style={{color:'#6b7280', fontSize:'12px', margin:'8px 0 0'}}>Made with ❤️ in INDIA - ANDHRA PRADESH - NARASIMHA RAO KILLI ❤️ </p>
+          <p style={{color:'#6b7280', fontSize:'12px', margin:'8px 0 0'}}>Made with ❤️ in India</p>
         </div>
       </footer>
     </div>
