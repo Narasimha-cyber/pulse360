@@ -1,6 +1,5 @@
 "use client"
 import { useState, useEffect, useRef } from 'react'
-import Script from 'next/script'
 
 export default function Home() {
   const [allNews, setAllNews] = useState([]);
@@ -13,40 +12,25 @@ export default function Home() {
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState({});
   const [showIntro, setShowIntro] = useState(true);
-  const globeRef = useRef(null);
+  const videoRef = useRef(null);
 
-  function RealGlobeIntro({onFinish}) {
+  function VideoIntro({onFinish}) {
     useEffect(() => {
-      let globe;
-
-      const initGlobe = () => {
-        if(window.Globe && document.getElementById('globeViz')) {
-          globe = Globe()
-         .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-         .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
-         .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
-         .showAtmosphere(true)
-         .atmosphereColor('lightblue')
-         .atmosphereAltitude(0.3)
-         .pointOfView({ lat: 0, lng: 0, altitude: 4 }, 0)
-         .pointOfView({ lat: 20.5937, lng: 78.9629, altitude: 1.2 }, 20000) // 20 sec lo India
-         .pointOfView({ lat: 15.9129, lng: 79.7400, altitude: 0.3 }, 40000) // 40 sec lo AP
-            (document.getElementById('globeViz'))
-
-          globeRef.current = globe;
+      // Video ayyaka automatic ga close
+      const video = videoRef.current;
+      if(video) {
+        video.onended = () => {
+          setShowIntro(false)
+          onFinish()
         }
+        video.play().catch(() => {
+          // Autoplay block ayithe 60 sec tarvata close
+          setTimeout(() => {
+            setShowIntro(false)
+            onFinish()
+          }, 60000)
+        })
       }
-
-      // Script load ayyaka 1 sec wait
-      setTimeout(initGlobe, 1000)
-
-      // 1 min = 60000ms tarvata site open
-      const timer = setTimeout(() => {
-        setShowIntro(false)
-        onFinish()
-      }, 60000)
-
-      return () => clearTimeout(timer)
     }, [])
 
     if(!showIntro) return null
@@ -54,12 +38,19 @@ export default function Home() {
       <div style={{
         position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
         background: 'black', zIndex: 9999, display: 'flex',
-        alignItems: 'center', justifyContent: 'center', flexDirection: 'column'
+        alignItems: 'center', justifyContent: 'center'
       }}>
-        <div id="globeViz" style={{width: '100%', height: '85%'}}></div>
-        <h1 style={{color: 'white', fontSize: '40px', fontWeight: 'bold', textShadow: '0 0 20px #00aaff'}}>Pulse 360 NEWS</h1>
-        <p style={{color: '#ffdd00', fontSize: '18px'}}>Zooming to Andhra Pradesh</p>
-        <p style={{color: '#888', fontSize: '14px', marginTop: '10px'}}>Loading in 60 seconds...</p>
+        <video
+          ref={videoRef}
+          src="/intro.mp4"
+          style={{width: '100%', height: '100%', objectFit: 'cover'}}
+          muted
+          playsInline
+        />
+        <div style={{position: 'absolute', bottom: '50px', textAlign: 'center'}}>
+          <h1 style={{color: 'white', fontSize: '40px', fontWeight: 'bold', textShadow: '0 0 20px #00aaff'}}>Pulse 360 NEWS</h1>
+          <p style={{color: '#ffdd00', fontSize: '18px'}}>From Space to Andhra Pradesh</p>
+        </div>
       </div>
     )
   }
@@ -67,12 +58,12 @@ export default function Home() {
   useEffect(() => {
     setLoading(true);
     fetch('/api/news', {cache: 'no-store'})
-   .then(res => res.json())
-   .then(data => {
+  .then(res => res.json())
+  .then(data => {
         setAllNews(data);
         setLoading(false);
       })
-   .catch(() => setLoading(false))
+  .catch(() => setLoading(false))
     const saved = localStorage.getItem('pulse360_fav');
     if(saved) setFavorites(JSON.parse(saved));
   }, []);
@@ -121,9 +112,7 @@ export default function Home() {
 
   return (
     <>
-      {loading && <RealGlobeIntro onFinish={() => setLoading(false)} />}
-      <Script src="https://unpkg.com/three@0.160.0/build/three.min.js" strategy="beforeInteractive" />
-      <Script src="https://unpkg.com/globe.gl" strategy="beforeInteractive" />
+      {loading && <VideoIntro onFinish={() => setLoading(false)} />}
 
       {!loading && (
         <main style={{padding: "20px", fontFamily: "Arial", background: bgColor, minHeight: "100vh", color: textColor, transition: "all 0.3s"}}>
