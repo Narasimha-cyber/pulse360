@@ -1,5 +1,6 @@
 "use client"
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import Script from 'next/script'
 
 export default function Home() {
   const [allNews, setAllNews] = useState([]);
@@ -12,62 +13,53 @@ export default function Home() {
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState({});
   const [showIntro, setShowIntro] = useState(true);
+  const globeRef = useRef(null);
 
-  function SpaceIntro({onFinish}) {
+  function RealGlobeIntro({onFinish}) {
     useEffect(() => {
+      let globe;
+
+      const initGlobe = () => {
+        if(window.Globe && document.getElementById('globeViz')) {
+          globe = Globe()
+         .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+         .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+         .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
+         .showAtmosphere(true)
+         .atmosphereColor('lightblue')
+         .atmosphereAltitude(0.3)
+         .pointOfView({ lat: 0, lng: 0, altitude: 4 }, 0)
+         .pointOfView({ lat: 20.5937, lng: 78.9629, altitude: 1.2 }, 20000) // 20 sec lo India
+         .pointOfView({ lat: 15.9129, lng: 79.7400, altitude: 0.3 }, 40000) // 40 sec lo AP
+            (document.getElementById('globeViz'))
+
+          globeRef.current = globe;
+        }
+      }
+
+      // Script load ayyaka 1 sec wait
+      setTimeout(initGlobe, 1000)
+
+      // 1 min = 60000ms tarvata site open
       const timer = setTimeout(() => {
         setShowIntro(false)
         onFinish()
-      }, 5000)
+      }, 60000)
+
       return () => clearTimeout(timer)
     }, [])
 
     if(!showIntro) return null
     return (
       <div style={{
-        position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', 
-        background: 'radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%)', 
-        zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', 
-        flexDirection: 'column', overflow: 'hidden'
+        position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+        background: 'black', zIndex: 9999, display: 'flex',
+        alignItems: 'center', justifyContent: 'center', flexDirection: 'column'
       }}>
-        {/* Stars */}
-        <div style={{position: 'absolute', width: '100%', height: '100%'}}>
-          {[...Array(100)].map((_, i) => (
-            <div key={i} style={{
-              position: 'absolute', 
-              width: '2px', height: '2px', background: 'white', borderRadius: '50%',
-              top: `${Math.random()*100}%`, left: `${Math.random()*100}%`,
-              animation: `twinkle ${2+Math.random()*3}s infinite`
-            }}></div>
-          ))}
-        </div>
-
-        {/* Globe Animation */}
-        <div style={{
-          width: '300px', height: '300px', borderRadius: '50%',
-          background: 'url(https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg) center/cover',
-          boxShadow: '0 0 50px #00aaff, inset 0 0 50px rgba(0,0,0,0.5)',
-          animation: 'rotateGlobe 5s linear, zoomIndia 5s ease-in-out',
-          marginBottom: '30px'
-        }}></div>
-
-        <h1 style={{color: 'white', fontSize: '45px', fontWeight: 'bold', textShadow: '0 0 20px #00aaff, 0 0 40px #00aaff', zIndex: 10}}>Pulse 360 NEWS</h1>
-        <p style={{color: '#ffdd00', fontSize: '20px', textShadow: '0 0 10px #ffdd00', zIndex: 10}}>From Space to You</p>
-
-        <style>{`
-          @keyframes rotateGlobe {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
-          @keyframes zoomIndia {
-            0% { transform: scale(1); }
-            100% { transform: scale(2.5) translateY(-50px); }
-          }
-          @keyframes twinkle {
-            0%, 100% { opacity: 0.2; }
-            50% { opacity: 1; }
-          }
-        `}</style>
+        <div id="globeViz" style={{width: '100%', height: '85%'}}></div>
+        <h1 style={{color: 'white', fontSize: '40px', fontWeight: 'bold', textShadow: '0 0 20px #00aaff'}}>Pulse 360 NEWS</h1>
+        <p style={{color: '#ffdd00', fontSize: '18px'}}>Zooming to Andhra Pradesh</p>
+        <p style={{color: '#888', fontSize: '14px', marginTop: '10px'}}>Loading in 60 seconds...</p>
       </div>
     )
   }
@@ -129,7 +121,9 @@ export default function Home() {
 
   return (
     <>
-      {loading && <SpaceIntro onFinish={() => setLoading(false)} />}
+      {loading && <RealGlobeIntro onFinish={() => setLoading(false)} />}
+      <Script src="https://unpkg.com/three@0.160.0/build/three.min.js" strategy="beforeInteractive" />
+      <Script src="https://unpkg.com/globe.gl" strategy="beforeInteractive" />
 
       {!loading && (
         <main style={{padding: "20px", fontFamily: "Arial", background: bgColor, minHeight: "100vh", color: textColor, transition: "all 0.3s"}}>
