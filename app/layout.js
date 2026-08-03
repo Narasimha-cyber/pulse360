@@ -1,3 +1,12 @@
+export const metadata = {
+  title: "Pulse 360 NEWS",
+  description: "Latest AP News and Updates",
+  icons: {
+    icon: "/logo.svg",        // Browser tab - SVG sharp ga untundi
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",       // iPhone - kuda SVG support chestundi
+  },
+}
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
