@@ -6,14 +6,14 @@ export default function RootLayout({ children }) {
         <header className="bg-white shadow-sm sticky top-0 z-50">
           <div className="container mx-auto px-4 py-3 flex items-center justify-between">
             
-            {/* LOGO */}
-            <div className="w-[120px] h-7">
-              <img
-                src="/logo.png"
-                alt="Pulse 360 NEWS"
-                className="w-full h-full object-contain"
-              />
-            </div>
+           {/* LOGO - INLINE STYLE */}
+         <div style={{ width: '160px', height: '32px' }}>
+          <img
+            src="/logo.png"
+            alt="Pulse 360 NEWS"
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+           />
+         </div>
 
             {/* RIGHT SIDE - SEARCH / MENU */}
             <nav>
