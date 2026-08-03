@@ -14,59 +14,30 @@ export default function Home() {
   const [showIntro, setShowIntro] = useState(true);
   const videoRef = useRef(null);
 
- function VideoIntro({onFinish}) {
+  function VideoIntro({onFinish}) {
     useEffect(() => {
-      const video = videoRef.current;
-      
-      if(video) {
-        // Video ayyaka close
-        video.onended = () => {
-          setShowIntro(false)
-          onFinish()
-        }
-
-        // Error aithe alert
-        video.onerror = () => {
-          alert("Video load avvaledu. File check cheyi: /public/intro.mp4")
-          setShowIntro(false)
-          onFinish()
-        }
-
-        // Force ga play cheyadam
-        video.play().catch(() => {
-          console.log("Autoplay blocked, 5 sec tarvata close chestha")
-        })
-      }
-      useEffect(() => {
       if (videoRef.current) {
-       videoRef.current.play().catch(() => {})
-  }
-}, [])
-    
-  if(!showIntro) return null
+        videoRef.current.play().catch(() => {})
+      }
+    }, [])
+
+    if(!showIntro) return null
     return (
-      <div style={{
-        position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-        background: 'black', zIndex: 9999, display: 'flex',
-        alignItems: 'center', justifyContent: 'center'
-      }}>
-     <video
-  ref={videoRef}
-  src="/intro.mp4"
-  style={{width: '100%', height: '100%', objectFit: 'cover'}}
-  muted
-  autoPlay
-  playsInline
-  onEnded={() => {setShowIntro(false); onFinish()}}
-  preload="auto"
-/>
+      <div style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'black', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+        <video
+          ref={videoRef}
+          src="/intro.mp4"
+          style={{width: '100%', height: '100%', objectFit: 'cover'}}
+          muted
+          autoPlay
+          playsInline
+          onEnded={() => {setShowIntro(false); onFinish()}}
+          preload="auto"
+        />
         <div style={{position: 'absolute', bottom: '50px', textAlign: 'center', color: 'white'}}>
           <h1 style={{fontSize: '40px', textShadow: '0 0 20px #00aaff'}}>Pulse 360 NEWS</h1>
           <p style={{color: '#ffdd00'}}>From Space to Andhra Pradesh</p>
-          <button
-            onClick={() => {setShowIntro(false); onFinish()}}
-            style={{marginTop: '10px', padding: '8px 20px', background: 'white', color: 'black', border: 'none', borderRadius: '8px', cursor: 'pointer'}}
-          >
+          <button onClick={() => {setShowIntro(false); onFinish()}} style={{marginTop: '10px', padding: '8px 20px', background: 'white', color: 'black', border: 'none', borderRadius: '8px', cursor: 'pointer'}} >
             Skip Intro
           </button>
         </div>
@@ -77,12 +48,12 @@ export default function Home() {
   useEffect(() => {
     setLoading(true);
     fetch('/api/news', {cache: 'no-store'})
- .then(res => res.json())
- .then(data => {
+     .then(res => res.json())
+     .then(data => {
         setAllNews(data);
         setLoading(false);
       })
- .catch(() => setLoading(false))
+     .catch(() => setLoading(false))
     const saved = localStorage.getItem('pulse360_fav');
     if(saved) setFavorites(JSON.parse(saved));
   }, []);
@@ -94,10 +65,7 @@ export default function Home() {
   const categories = ['All', 'General', 'Politics', 'Sports', 'Technology', 'Business', 'Telangana', 'Favorites'];
   let filteredNews = filter === 'All'? allNews : filter === 'Favorites'? allNews.filter(news => favorites.includes(news.url)) : allNews.filter(news => news.category === filter);
   if(search) {
-    filteredNews = filteredNews.filter(news =>
-      news.title.toLowerCase().includes(search.toLowerCase()) ||
-      news.description.toLowerCase().includes(search.toLowerCase())
-    )
+    filteredNews = filteredNews.filter(news => news.title.toLowerCase().includes(search.toLowerCase()) || news.description.toLowerCase().includes(search.toLowerCase()) )
   }
 
   const toggleFavorite = (url) => {
@@ -132,7 +100,6 @@ export default function Home() {
   return (
     <>
       {loading && <VideoIntro onFinish={() => setLoading(false)} />}
-
       {!loading && (
         <main style={{padding: "20px", fontFamily: "Arial", background: bgColor, minHeight: "100vh", color: textColor, transition: "all 0.3s"}}>
           <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
