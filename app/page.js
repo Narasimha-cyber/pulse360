@@ -42,7 +42,7 @@ export default function Home() {
       const timer = setTimeout(() => {
         setShowIntro(false)
         onFinish()
-      }, 29000)
+      }, 32000)
 
       return () => clearTimeout(timer)
     }, [])
