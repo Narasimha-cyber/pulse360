@@ -2,25 +2,34 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type');
 
-  let url = `https://newsapi.org/v2/top-headlines?country=in&pageSize=10&apiKey=${process.env.NEWS_API_KEY}`;
-  
-  if(type === 'andhra') url = `https://newsapi.org/v2/everything?q=Andhra Pradesh OR Telangana&language=en&sortBy=publishedAt&from=2026-08-04&pageSize=10&apiKey=${process.env.NEWS_API_KEY}`;
-  if(type === 'sports') url = `https://newsapi.org/v2/top-headlines?category=sports&country=in&pageSize=10&apiKey=${process.env.NEWS_API_KEY}`;
+  let category = 'general';
+  if(type === 'andhra') category = 'regional';
+  if(type === 'sports') category = 'sports';
 
-  const res = await fetch(url, { cache: 'no-store' });
+  const res = await fetch(
+    `https://api.currentsapi.services/v1/latest-news?country=IN&category=${category}&language=en&apiKey=${process.env.CURRENTS_API_KEY}`,
+    { cache: 'no-store' }
+  );
+
+  if (!res.ok) {
+    return Response.json({ articles: [] }, { status: 500 });
+  }
+
   const data = await res.json();
   
   const formatted = {
-    articles: data.articles?.map(a => ({
+    articles: data.news?.map(a => ({
       title: a.title,
       description: a.description,
       content: a.content,
       url: a.url,
-      image: a.urlToImage || 'https://via.placeholder.com/400x200',
-      publishedAt: a.publishedAt,
-      source: { name: a.source.name }
+      image: a.image || 'https://via.placeholder.com/400x200',
+      publishedAt: a.published,
+      source: { name: a.author || 'Currents' }
     })) || []
   };
 
-  return Response.json(formatted);
+  return Response.json(formatted, {
+    headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
+  });
 }
