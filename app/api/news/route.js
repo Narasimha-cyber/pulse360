@@ -1,34 +1,29 @@
+// app/api/news/route.js
+import { NextResponse } from 'next/server';
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
-  const type = searchParams.get('type');
+  const tab = searchParams.get('tab') || 'in';
 
-  let url = '';
+  const API_KEY = process.env.CURRENTS_API_KEY; // Server side nunchi teeskuntundi
 
-  if(type === 'andhra') {
-    // Currents Search API - AP/TS keywords tho matrame search
-    url = `https://api.currentsapi.services/v1/search?keywords=Andhra Pradesh OR Telangana OR AP OR TS OR Hyderabad OR Vijayawada OR Visakhapatnam&country=IN&language=en&apiKey=${process.env.CURRENTS_API_KEY}`;
-  } 
-  else if(type === 'sports') {
-    url = `https://api.currentsapi.services/v1/latest-news?category=sports&country=IN&language=en&apiKey=${process.env.CURRENTS_API_KEY}`;
+  let params = `apiKey=${API_KEY}&language=en&page_size=10`;
+
+  if(tab === 'AP') {
+    params += `&keywords=Andhra Pradesh`;
+  } else if(tab === 'India') {
+    params += `&country=in`;
+  } else {
+    params += `&country=in`;
   }
-  else {
-    url = `https://api.currentsapi.services/v1/latest-news?category=general&country=IN&language=en&apiKey=${process.env.CURRENTS_API_KEY}`;
+
+  const url = `https://api.currentsapi.services/v1/search?${params}`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    return NextResponse.json(data);
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   }
-
-  const res = await fetch(url, { cache: 'no-store' });
-  const data = await res.json();
-  
-  const formatted = {
-    articles: data.news?.map(a => ({
-      title: a.title,
-      description: a.description,
-      content: a.content,
-      url: a.url,
-      image: a.image || 'https://via.placeholder.com/400x200',
-      publishedAt: a.published,
-      source: { name: a.author || 'Currents' }
-    })) || []
-  };
-
-  return Response.json(formatted);
 }
