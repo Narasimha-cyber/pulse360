@@ -206,10 +206,13 @@ export default function Home() {
         }
       </section>
 
-      {/* Footer */}
-      <footer style={{background: colors.card, textAlign:'center', padding:'32px 20px', borderTop:`1px solid ${colors.border}`}}>
-        <p style={{fontSize:'14px'}}>© 2026 Copyright India Andhrapradesh Eluru</p>
-        <p style={{fontSize:'13px', color:colors.muted, marginTop:'8px'}}>Developed by Narasimha Rao Killi</p>
+     {/* Footer */}
+      <footer style={{background: colors.card, borderTop:`1px solid ${colors.border}`, textAlign:'center', padding:'32px 20px'}}>
+        <div style={{maxWidth:'1200px', margin:'0 auto'}}>
+          <p style={{color:'#9ca3af', fontSize:'14px', margin:0}}>© 2026 Pulse360. All rights reserved.</p>
+          <p style={{color:'#6b7280', fontSize:'12px', margin:'8px 0 0'}}>Made with ❤️ in INDIA - ANDHRA PRADESH - ELURU</p>
+          <p style={{color:'#6b7280', fontSize:'12px', margin:'4px 0 0'}}>Developed by Narasimha Rao Killi</p>
+        </div>
       </footer>
     </main>
   )
