@@ -178,7 +178,7 @@ export default function HomePage() {
           </div>
         )}
       </div>
-      <footer style={{background: darkMode? '#020202' : '#f3f3f3', borderTop:`1px solid ${darkMode? '#222' : '#ddd'}`, marginTop:'40px'}}>
+    <footer style={{background: darkMode? '#020202' : '#f3f3f3', borderTop:`1px solid ${darkMode? '#222' : '#ddd}'}`}}>
         <div style={{maxWidth:'1200px', margin:'0 auto', textAlign:'center', padding:'20px'}}>
           <p style={{color:'#9ca3af', fontSize:'14px', margin:0}}>© 2026 Pulse360. All rights reserved.</p>
           <p style={{color:'#6b7280', fontSize:'12px', margin:'8px 0 0'}}>Made with ❤️ in INDIA - ANDHRA PRADESH - NARASIMHA RAO KILLI ❤️ </p>
