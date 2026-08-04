@@ -13,19 +13,7 @@ export default function HomePage() {
   const staticArticles = [
   { id: 'static-1', title: "CM Chandrababu New Scheme Launch", category: "Politics", type: "static" },
   { id: 'static-2', title: "AP Inter Results 2026 Out", category: "Education", type: "static" },
-  { id: 'static-3', title: "India vs Australia T20 Highlights", category: "Sports", type: "static" },
-  { id: 'static-4', title: "AI Tools for Students 2026", category: "Technology", type: "static" },
-  { id: 'static-5', title: "Gold Price Today in AP", category: "Business", type: "static" },
-  { id: 'static-6', title: "Eluru Health Camp Free Checkup", category: "Health", type: "static" },
-  { id: 'static-7', title: "Rajamouli New Movie Update", category: "Entertainment", type: "static" },
-  { id: 'static-8', title: "Vijayawada Metro Project Approved", category: "Local News", type: "static" },
-  { id: 'static-9', title: "Weather Alert: Heavy Rains in AP", category: "Weather", type: "static" },
-  { id: 'static-10', title: "New Traffic Rules in AP", category: "Traffic", type: "static" },
-  { id: 'static-11', title: "AP Govt Jobs 2026: 5000+ Vacancies", category: "Jobs", type: "static" },
-  { id: 'static-12', title: "Paddy MSP Increased: Farmers Happy", category: "Agriculture", type: "static" },
-  { id: 'static-13', title: "Eluru Hit-and-Run Case: Police Arrest 2", category: "Crime", type: "static" },
-  { id: 'static-14', title: "Bigg Boss Telugu 7: Contestants List", category: "Entertainment", type: "static" },
-  { id: 'static-15', title: "Vinayaka Chaviti 2026: Puja Tips", category: "Lifestyle", type: "static" },
+  
 ];
   useEffect(() => {
     if(darkMode){
