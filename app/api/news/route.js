@@ -1,25 +1,21 @@
-export async function GET(request) {
-  const API_KEY = process.env.GNEWS_API_KEY;
-  console.log("KEY:", API_KEY) // Vercel logs lo check cheyadaniki
+export async function GET() {
+  const res = await fetch(
+    `https://gnews.io/api/v4/top-headlines?lang=en&country=in&max=10&apikey=${process.env.GNEWS_API_KEY}`,
+    { 
+      cache: 'no-store', // <- idhi chala imp bro. Cache off cheyyadaniki
+      next: { revalidate: 0 } // Next.js 13+ kosam
+    }
+  );
 
-  if(!API_KEY){
-    return Response.json({articles: [], error: "API Key Missing in Vercel Env"})
+  if (!res.ok) {
+    return Response.json({ error: "GNews failed" }, { status: 500 });
   }
 
-  const { searchParams } = new URL(request.url);
-  const type = searchParams.get('type') || 'top';
-  let q = 'India';
-  if(type === 'andhra') q = 'Andhra Pradesh';
-  if(type === 'sports') q = 'Sports';
-
-  const url = `https://gnews.io/api/v4/search?q=${q}&lang=en&country=in&max=15&apikey=${API_KEY}`;
+  const data = await res.json();
   
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-    if(data.errors) return Response.json({articles: [], error: data.errors[0]})
-    return Response.json(data);
-  } catch(e) {
-    return Response.json({articles: [], error: e.message})
-  }
+  return new Response(JSON.stringify(data), {
+    headers: {
+      'Cache-Control': 'no-store, max-age=0', // Browser cache kuda off
+    },
+  });
 }
