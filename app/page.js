@@ -10,7 +10,23 @@ export default function HomePage() {
   const [commentText, setCommentText] = useState('');
   const [darkMode, setDarkMode] = useState(true);
   const [breakingNews, setBreakingNews] = useState('');
-
+  const staticArticles = [
+  { id: 'static-1', title: "CM Chandrababu New Scheme Launch", category: "Politics", type: "static" },
+  { id: 'static-2', title: "AP Inter Results 2026 Out", category: "Education", type: "static" },
+  { id: 'static-3', title: "India vs Australia T20 Highlights", category: "Sports", type: "static" },
+  { id: 'static-4', title: "AI Tools for Students 2026", category: "Technology", type: "static" },
+  { id: 'static-5', title: "Gold Price Today in AP", category: "Business", type: "static" },
+  { id: 'static-6', title: "Eluru Health Camp Free Checkup", category: "Health", type: "static" },
+  { id: 'static-7', title: "Rajamouli New Movie Update", category: "Entertainment", type: "static" },
+  { id: 'static-8', title: "Vijayawada Metro Project Approved", category: "Local News", type: "static" },
+  { id: 'static-9', title: "Weather Alert: Heavy Rains in AP", category: "Weather", type: "static" },
+  { id: 'static-10', title: "New Traffic Rules in AP", category: "Traffic", type: "static" },
+  { id: 'static-11', title: "AP Govt Jobs 2026: 5000+ Vacancies", category: "Jobs", type: "static" },
+  { id: 'static-12', title: "Paddy MSP Increased: Farmers Happy", category: "Agriculture", type: "static" },
+  { id: 'static-13', title: "Eluru Hit-and-Run Case: Police Arrest 2", category: "Crime", type: "static" },
+  { id: 'static-14', title: "Bigg Boss Telugu 7: Contestants List", category: "Entertainment", type: "static" },
+  { id: 'static-15', title: "Vinayaka Chaviti 2026: Puja Tips", category: "Lifestyle", type: "static" },
+];
   useEffect(() => {
     if(darkMode){
       document.documentElement.classList.add('dark')
@@ -102,7 +118,22 @@ export default function HomePage() {
         }
       `}</style>
 
-      <div style={{maxWidth:'1200px', margin:'0 auto', padding:'20px', flex:1, width:'100%'}}>
+     {/* NEWS GRID - Static + API News */}
+<div style={{maxWidth: '1200px', margin: '0 auto', padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px'}}>
+  {[...staticArticles, ...allNews].map((news) => (
+    <a 
+      key={news.id} 
+      href={news.type === 'static' ? `/article-${news.id.split('-')[1]}` : `/news/${news.id}`}
+      style={{border: '1px solid #ddd', padding: '15px', borderRadius: '8px', textDecoration: 'none', color: darkMode ? '#fff' : '#000', background: darkMode ? '#111' : '#fff', cursor: 'pointer'}}
+    >
+      <span style={{fontSize: '12px', background: '#0070f3', color: 'white', padding: '3px 8px', borderRadius: '4px'}}>
+        {news.category}
+      </span>
+      <h3 style={{marginTop: '10px', fontSize: '18px'}}>{news.title}</h3>
+      <p style={{fontSize: '14px', color: '#888'}}>Read more →</p>
+    </a>
+  ))}
+</div>
         {selectedNews? (
           <div style={{maxWidth:'900px', margin:'0 auto'}}>
             <button onClick={()=>setSelectedNews(null)} style={{marginBottom:'16px', padding:'8px 16px', background: darkMode? '#222' : '#eee', color: darkMode? '#fff' : '#000', border:'none', borderRadius:'8px', cursor:'pointer'}}>← Back</button>
