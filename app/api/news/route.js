@@ -2,25 +2,23 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type');
 
+  // Vercel cache break cheyyadaniki random timestamp
+  const timestamp = Date.now();
+
   let query = 'India';
   if(type === 'andhra') query = 'Andhra Pradesh OR Telangana';
   if(type === 'sports') query = 'Sports India';
 
   const res = await fetch(
-    `https://newsapi.org/v2/everything?q=${query}&language=en&sortBy=publishedAt&pageSize=10&apiKey=${process.env.NEWS_API_KEY}`,
-    { 
-      cache: 'no-store',
-      next: { revalidate: 0 }
+    `https://newsapi.org/v2/everything?q=${query}&language=en&sortBy=publishedAt&pageSize=10&apiKey=${process.env.NEWS_API_KEY}&t=${timestamp}`,
+    {
+      cache: 'no-store'
     }
   );
 
-  if (!res.ok) {
-    return Response.json({ error: "NewsAPI failed" }, { status: 500 });
-  }
-
   const data = await res.json();
-  
-  // NewsAPI data ni mana page.js format ki marchadam
+  console.log("NewsAPI Date:", data.articles?.[0]?.publishedAt); // Vercel logs lo check cheyyadaniki
+
   const formatted = {
     articles: data.articles?.map(a => ({
       title: a.title,
@@ -28,12 +26,12 @@ export async function GET(request) {
       content: a.content,
       url: a.url,
       image: a.urlToImage || 'https://via.placeholder.com/400x200',
-      publishedAt: a.publishedAt,
+      publishedAt: new Date(a.publishedAt).toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'}),
       source: { name: a.source.name }
     })) || []
   };
 
-  return new Response(JSON.stringify(formatted), {
-    headers: { 'Cache-Control': 'no-store, max-age=0' },
+  return Response.json(formatted, {
+    headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
   });
 }
