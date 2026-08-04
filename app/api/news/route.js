@@ -1,21 +1,18 @@
 export async function GET() {
+  // today date teeskovadam
+  const today = new Date().toISOString().split('T')[0]; // 2026-08-04
+
   const res = await fetch(
-    `https://gnews.io/api/v4/top-headlines?lang=en&country=in&max=10&apikey=${process.env.GNEWS_API_KEY}`,
-    { 
-      cache: 'no-store', // <- idhi chala imp bro. Cache off cheyyadaniki
-      next: { revalidate: 0 } // Next.js 13+ kosam
+    `https://gnews.io/api/v4/search?q=India&lang=en&country=in&max=10&from=${today}&apikey=${process.env.GNEWS_API_KEY}`,
+    {
+      cache: 'no-store',
+      next: { revalidate: 0 }
     }
   );
 
-  if (!res.ok) {
-    return Response.json({ error: "GNews failed" }, { status: 500 });
-  }
-
   const data = await res.json();
-  
+
   return new Response(JSON.stringify(data), {
-    headers: {
-      'Cache-Control': 'no-store, max-age=0', // Browser cache kuda off
-    },
+    headers: { 'Cache-Control': 'no-store, max-age=0' },
   });
 }
