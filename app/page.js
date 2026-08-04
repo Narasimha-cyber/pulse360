@@ -12,8 +12,7 @@ export default function HomePage() {
   const [breakingNews, setBreakingNews] = useState('');
   const staticArticles = [
   { id: 'static-1', title: "CM Chandrababu New Scheme Launch", category: "Politics", type: "static" },
-  { id: 'static-2', title: "AP Inter Results 2026 Out", category: "Education", type: "static" },
-  
+  { id: 'static-2', title: "AP Inter Results 2026 Out", category: "Education", type: "static" }, 
 ];
   useEffect(() => {
     if(darkMode){
