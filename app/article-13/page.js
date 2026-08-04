@@ -1,4 +1,3 @@
-jsx
 export default function Article13() {
   return (
     <main style={{fontFamily: 'Arial', maxWidth: '800px', margin: '0 auto', padding: '20px'}}>
