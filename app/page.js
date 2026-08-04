@@ -122,9 +122,9 @@ export default function HomePage() {
 <div style={{maxWidth: '1200px', margin: '0 auto', padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px'}}>
   {[...staticArticles, ...allNews].map((news) => (
     <a 
-      key={news.id} 
-      href={news.type === 'static' ? `/article-${news.id.split('-')[1]}` : `/news/${news.id}`}
-      style={{border: '1px solid #ddd', padding: '15px', borderRadius: '8px', textDecoration: 'none', color: darkMode ? '#fff' : '#000', background: darkMode ? '#111' : '#fff', cursor: 'pointer'}}
+      key={news.id}
+     href={`/news/${news.id}`}
+          style={{border: '1px solid #ddd', padding: '15px', borderRadius: '8px', textDecoration: 'none', color: darkMode ? '#fff' : '#000', background: darkMode ? '#111' : '#fff', cursor: 'pointer'}}
     >
       <span style={{fontSize: '12px', background: '#0070f3', color: 'white', padding: '3px 8px', borderRadius: '4px'}}>
         {news.category}
