@@ -2,32 +2,24 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type');
 
-  let category = 'general';
-  let query = '';
+  let url = '';
 
   if(type === 'andhra') {
-    category = 'regional';
-    query = '&keywords=Andhra Pradesh,AP,Telangana,TS,Hyderabad,Vijayawada,Visakhapatnam'; // AP/TS keywords force
+    // Currents Search API - AP/TS keywords tho matrame search
+    url = `https://api.currentsapi.services/v1/search?keywords=Andhra Pradesh OR Telangana OR AP OR TS OR Hyderabad OR Vijayawada OR Visakhapatnam&country=IN&language=en&apiKey=${process.env.CURRENTS_API_KEY}`;
+  } 
+  else if(type === 'sports') {
+    url = `https://api.currentsapi.services/v1/latest-news?category=sports&country=IN&language=en&apiKey=${process.env.CURRENTS_API_KEY}`;
   }
-  if(type === 'sports') category = 'sports';
+  else {
+    url = `https://api.currentsapi.services/v1/latest-news?category=general&country=IN&language=en&apiKey=${process.env.CURRENTS_API_KEY}`;
+  }
 
-  const res = await fetch(
-    `https://api.currentsapi.services/v1/latest-news?country=IN&category=${category}${query}&language=en&apiKey=${process.env.CURRENTS_API_KEY}`,
-    { cache: 'no-store' }
-  );
-
+  const res = await fetch(url, { cache: 'no-store' });
   const data = await res.json();
   
-  // Extra filter: title lo AP/TS lekapothe vadiley
-  let articles = data.news || [];
-  if(type === 'andhra') {
-    articles = articles.filter(a => 
-      /Andhra|AP|Telangana|TS|Hyderabad|Vizag|Vijayawada|Tirupati/i.test(a.title + ' ' + a.description)
-    );
-  }
-
   const formatted = {
-    articles: articles.map(a => ({
+    articles: data.news?.map(a => ({
       title: a.title,
       description: a.description,
       content: a.content,
