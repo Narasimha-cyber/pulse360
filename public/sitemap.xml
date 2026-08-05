@@ -1,9 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
   <url>
-    <loc>https://pulse360news.in/</loc>
-    <lastmod>2026-08-04</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
+    <loc>https://pulse360.in/</loc>
+    <lastmod>2026-08-05</lastmod>
   </url>
+
+  <url>
+    <loc>https://pulse360.in/privacy</loc>
+    <lastmod>2026-08-05</lastmod>
+  </url>
+
+  <url>
+    <loc>https://pulse360.in/terms</loc>
+    <lastmod>2026-08-05</lastmod>
+  </url>
+
+  <url>
+    <loc>https://pulse360.in/disclaimer</loc>
+    <lastmod>2026-08-05</lastmod>
+  </url>
+
+  <url>
+    <loc>https://pulse360.in/contact</loc>
+    <lastmod>2026-08-05</lastmod>
+  </url>
+
 </urlset>
