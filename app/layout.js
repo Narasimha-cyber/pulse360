@@ -1,35 +1,42 @@
-export const metadata = {
-  title: "Pulse 360 NEWS",
-  description: "Latest AP News and Updates",
-  icons: {
-    icon: "/logo.svg",        // Browser tab - SVG sharp ga untundi
-    shortcut: "/logo.svg",
-    apple: "/logo.svg",       // iPhone - kuda SVG support chestundi
-  },
-}
+jsx
+// app/layout.js
+import { Inter } from 'next/font/google';
+import './globals.css';
+
+const inter = Inter({ subsets: ['latin'] });
+
+export const generateMetadata = ({ params }) => {
+  const title = "Pulse360 - AP and India News";
+  const description = "Get latest news from Andhra Pradesh and India";
+  const url = "https://www.pulse360news.in";
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+  };
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
-        {/* HEADER */}
-      <header style={{ background: 'white', padding: '16px 24px', borderBottom: '1px solid #eee' }}>
-  
-  {/* IMG TAG KI BADULU DIV WITH BACKGROUND */}
-  <div style={{
-    width: '400px',
-    height: '80px',
-    backgroundImage: 'url(/logo.png)',
-    backgroundSize: '40%',
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'left center'
-  }}></div>
-
-</header>
-        {/* PAGE CONTENT */}
+      <head>
+        <link rel="icon" href="/favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      </head>
+      <body className={inter.className}>
         {children}
-
-        {/* FOOTER - unte ikkada */}
       </body>
     </html>
-  )
+  );
 }
