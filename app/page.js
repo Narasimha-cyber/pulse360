@@ -126,10 +126,16 @@ export default function Home() {
       minHeight:'100vh',
       fontFamily:'system-ui'
     }}>
-      {/* Header */}
+     {/* Header */}
       <header style={{position:'sticky', top:0, zIndex:10, background:colors.bg, borderBottom:`1px solid ${colors.border}`}}>
         <div style={{maxWidth:'1200px', margin:'0 auto', padding:'14px 20px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-          <h1 style={{fontSize:'28px', fontWeight:'bold', color:'#3b82f6'}}>Pulse360</h1>
+          
+          {/* LOGO + NAME */}
+          <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
+            <img src="/logo.png" alt="Pulse360 Logo" style={{width:'40px', height:'40px', borderRadius:'8px'}} />
+            <h1 style={{fontSize:'28px', fontWeight:'bold', color:'#3b82f6'}}>Pulse360</h1>
+          </div>
+
           <button onClick={()=>setDarkMode(!darkMode)} style={{fontSize:'22px', background:'none', border:'none', cursor:'pointer'}}>{darkMode? '☀️' : '🌙'}</button>
         </div>
         {/* Breaking News */}
