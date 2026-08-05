@@ -38,19 +38,40 @@ export default function Home() {
   ];
 
   // Breaking News
-  const breakingNews = [
-    "🚨 AP Inter Results Released Today",
-    "🚨 Farmers to get Rs 20,000 under Annadata Sukhibhava",
-    "🚨 India Won T20 World Cup 2026"
-  ];
-
+ const [breakingNews, setBreakingNews] = useState([]);
   useEffect(() => {
     const interval = setInterval(() => {
       setBreakingIndex(prev => (prev + 1) % breakingNews.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, []);
-
+  }, [breakingNews]);
+ // Live Breaking News Fetch
+useEffect(() => {
+  const fetchBreaking = async () => {
+    try {
+      const res = await fetch(`/api/news?tab=breaking`);
+      const data = await res.json();
+      
+      const liveBreaking = data.news?.slice(0, 5).map(item => `🚨 ${item.title}`) || [];
+      
+      if(liveBreaking.length > 0){
+        setBreakingNews(liveBreaking);
+      } else {
+        setBreakingNews([
+          "🚨 AP Inter Results Released Today",
+          "🚨 Farmers to get Rs 20,000 under Annadata Sukhibhava",
+          "🚨 India Won T20 World Cup 2026"
+        ]);
+      }
+    } catch (error) {
+      console.log("Breaking News Error:", error);
+    }
+  };
+  
+  fetchBreaking();
+  const interval = setInterval(fetchBreaking, 60000); // 1 min ki update
+  return () => clearInterval(interval);
+}, []);
   // Live News Fetch from our Route
   useEffect(() => {
     const fetchNews = async () => {
@@ -132,7 +153,7 @@ export default function Home() {
           
           {/* LOGO + NAME */}
           <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
-            <img src="/logo.png" alt="Pulse360 Logo" style={{width:'40px', height:'40px', borderRadius:'8px'}} />
+           <img src="/logo.svg" alt="Pulse360 Logo" style={{width:'80px', height:'80px', objectFit:'contain'}} />
             <h1 style={{fontSize:'28px', fontWeight:'bold', color:'#3b82f6'}}>Pulse360</h1>
           </div>
 
