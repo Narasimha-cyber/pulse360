@@ -150,22 +150,19 @@ useEffect(() => {
      {/* Header */}
       <header style={{position:'sticky', top:0, zIndex:10, background:colors.bg, borderBottom:`1px solid ${colors.border}`}}>
         <div style={{maxWidth:'1200px', margin:'0 auto', padding:'14px 20px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-          {/* LOGO + NAME */}
+         {/* LOGO + NAME */}
 <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
-  <img 
-    src="/logo.svg" 
-    alt="Pulse360 Logo" 
-    style={{
-      width:'80px', 
-      height:'80px', 
-      objectFit:'contain',
-      minWidth:'80px', 
-      minHeight:'80px'
-    }} 
-  />
+  <div style={{
+    width: '400px',
+    height: '80px',
+    backgroundImage: 'url(/logo.svg)',
+    backgroundSize: '40%',  // <-- Nuv cheppina last time fix
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'left center'
+  }}></div>
+  
   <h1 style={{fontSize:'32px', fontWeight:'bold', color:'#3b82f6'}}>Pulse360</h1>
 </div>
-        
 
           <button onClick={()=>setDarkMode(!darkMode)} style={{fontSize:'22px', background:'none', border:'none', cursor:'pointer'}}>{darkMode? '☀️' : '🌙'}</button>
         </div>
