@@ -233,18 +233,20 @@ useEffect(() => {
       </section>
 
       {/* Footer with Legal Pages - Added for AdSense */}
-      <footer style={{background: colors.card, borderTop:`1px solid ${colors.border}`, textAlign:'center', padding:'32px 20px'}}>
-        <div style={{maxWidth:'1200px', margin:'0 auto'}}>
-          <div style={{display:'flex', gap:'20px', justifyContent:'center', marginBottom:'16px', flexWrap:'wrap'}}>
-            <Link href="/about" style={{color:'#3b82f6', textDecoration:'none', fontSize:'14px'}}>About Us</Link>
-            <Link href="/contact" style={{color:'#3b82f6', textDecoration:'none', fontSize:'14px'}}>Contact</Link>
-            <Link href="/privacy-policy" style={{color:'#3b82f6', textDecoration:'none', fontSize:'14px'}}>Privacy Policy</Link>
-          </div>
-          <p style={{color:'#9ca3af', fontSize:'14px', margin:0}}>© 2026 Pulse360. All rights reserved.</p>
-          <p style={{color:'#6b7280', fontSize:'12px', margin:'8px 0 0'}}>Made with ❤️ in INDIA - ANDHRA PRADESH - ELURU</p>
-          <p style={{color:'#6b7280', fontSize:'12px', margin:'4px 0 0'}}>Developed by Narasimha Rao Killi</p>
-        </div>
-      </footer>
+     <footer style={{background: colors.card, borderTop:`1px solid ${colors.border}`, textAlign:'center', padding:'32px 20px'}}>
+  <div style={{maxWidth:'1200px', margin:'0 auto'}}>
+    <div style={{display:'flex', gap:'20px', justifyContent:'center', marginBottom:'16px', flexWrap:'wrap'}}>
+      <Link href="/about" style={{color:'#3b82f6', textDecoration:'none', fontSize:'14px'}}>About Us</Link>
+      <Link href="/contact" style={{color:'#3b82f6', textDecoration:'none', fontSize:'14px'}}>Contact</Link>
+      <Link href="/privacy" style={{color:'#3b82f6', textDecoration:'none', fontSize:'14px'}}>Privacy Policy</Link>
+      <Link href="/terms" style={{color:'#3b82f6', textDecoration:'none', fontSize:'14px'}}>Terms & Conditions</Link>
+      <Link href="/disclaimer" style={{color:'#3b82f6', textDecoration:'none', fontSize:'14px'}}>Disclaimer</Link>
+    </div>
+    <p style={{color:'#9ca3af', fontSize:'14px', margin:0}}>© 2026 Pulse360. All rights reserved.</p>
+    <p style={{color:'#6b7280', fontSize:'12px', margin:'8px 0 0'}}>Made with ❤️ in INDIA - ANDHRA PRADESH - ELURU</p>
+    <p style={{color:'#6b7280', fontSize:'12px', margin:'4px 0 0'}}>Developed by Narasimha Rao Killli</p>
+  </div>
+</footer>
     </main>
   )
 }
