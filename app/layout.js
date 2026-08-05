@@ -1,30 +1,15 @@
-jsx
-// app/layout.js
 import { Inter } from 'next/font/google';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
-export const generateMetadata = ({ params }) => {
-  const title = "Pulse360 - AP and India News";
-  const description = "Get latest news from Andhra Pradesh and India";
-  const url = "https://www.pulse360news.in";
-
-  return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      url,
-      type: 'website',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-    },
-  };
+export const metadata = {
+  title: "Pulse360 - AP and India News",
+  description: "Get latest news from Andhra Pradesh and India",
+  openGraph: {
+    title: "Pulse360 - AP and India News",
+    description: "Get latest news from Andhra Pradesh and India",
+  },
 };
 
 export default function RootLayout({ children }) {
