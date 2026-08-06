@@ -57,7 +57,7 @@
                         <img src="${n.image}" width="200" style="border-radius:5px">
                         <h3>${n.title}</h3>
                         <p>${n.description}</p>
-                        <button onclick="update('${doc.id}','approved')" 
+                        <button onclick="approve('${doc.id}')" 
                             style="background:green;color:white;padding:8px 15px;border:none;border-radius:5px;margin-right:10px">
                             Approve
                         </button>
@@ -69,6 +69,21 @@
                 })
                 document.getElementById('newsList').innerHTML = html || "No pending requests";
             })
+        }
+
+        // 👇👇👇 APPROVE LOGIC
+        function approve(id){
+            const docRef = db.collection("pendingNews").doc(id);
+            docRef.get().then(doc => {
+                const data = doc.data();
+                // Publish cheyyi
+                db.collection("publishedNews").add(data)
+                .then(() => {
+                    // Pending nundi delete cheyyi
+                    docRef.delete();
+                    alert("News approved & published!");
+                });
+            });
         }
 
         // 👇👇👇 UPDATE STATUS
