@@ -38,7 +38,7 @@
 
         function loadPendingNews() {
             const newsContainer = document.getElementById('newsContainer');
-            const q = query(collection(db, 'pendingNews'), where('status', '==', 'pending'));
+            const q = query(collection(db, 'pendingNews'));
 
             onSnapshot(q, (snapshot) => {
                 if (snapshot.empty) {
