@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eluru News - Reporter Upload</title>
+<style>
+body{font-family:'Segoe UI',Arial;max-width:600px;margin:20px auto;padding:15px;background:#f5f5f5}
+.box{background:white;padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+h2{text-align:center;color:#d32f2f}
+input,textarea{width:100%;padding:12px;margin:10px 0;border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box}
+button{background:#d32f2f;color:white;padding:14px;border:none;border-radius:6px;cursor:pointer;width:100%;font-size:16px;font-weight:bold}
+button:hover{background:#b71c1c}
+#msg{margin-top:15px;padding:12px;border-radius:6px;display:none;text-align:center}
+</style>
+</head>
+<body>
+<div class="box">
+<h2>📰 Eluru News - Reporter Ga Join Avvandi</h2>
+<p style="text-align:center;color:#666">Mee area news mana tho share cheyyandi</p>
+<form id="uploadForm">
+  <input type="text" id="name" placeholder="Mee Peru" required>
+  <input type="tel" id="phone" placeholder="Phone Number" required>
+  <textarea id="story" placeholder="News/Story Details" rows="4" required></textarea>
+  <label>Photo Upload:</label>
+  <input type="file" id="photo" accept="image/*" required>
+  <button type="submit">Upload Cheyyi</button>
+</form>
+<div id="msg"></div>
+</div>
+
+<script>
+const CLOUD_NAME = "ld6mifgm";
+const UPLOAD_PRESET = "reporter_upload";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbxOXkuZ2izsEs2OuyKgh15hGf9Bno2nS_5vlUDMbyGVZC9hamNvyfBv-WbmkuCx_9-o/exec";
+
+document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById('msg');
+  msg.style.display = 'block';
+  msg.style.background = '#fff3cd';
+  msg.innerText = "⏳ Uploading... koncham wait cheyyi";
+  
+  const file = document.getElementById('photo').files[0];
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', UPLOAD_PRESET);
+  
+  try {
+    const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+      method: 'POST',
+      body: formData
+    });
+    const cloudData = await cloudRes.json();
+    
+    const data = {
+      name: document.getElementById('name').value,
+      phone: document.getElementById('phone').value,
+      story: document.getElementById('story').value,
+      photoURL: cloudData.secure_url,
+      timestamp: new Date().toLocaleString('en-IN')
+    };
+    
+    await fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify(data)
+    });
+    
+    msg.style.background = '#d4edda';
+    msg.innerText = "✅ Success! Mee story submit ayindi. Admin check chesaka publish chestham.";
+    document.getElementById('uploadForm').reset();
+  } catch(err) {
+    msg.style.background = '#f8d7da';
+    msg.innerText = "❌ Error ayindi. Malli try cheyyi.";
+  }
+});
+</script>
+</body>
+</html>
