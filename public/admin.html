@@ -24,7 +24,7 @@ const SCRIPT_URL ="https://script.google.com/macros/s/AKfycbyX2RQRf1jIX_oi5AwH3Q
 
 async function loadNews(){
   try{
-    let res = await fetch(SCRIPT_URL + "?action=getPending");
+    let res = await fetch(SCRIPT_URL + "?action=getpending");
     let data = await res.json();
     let html = "";
     if(data.length === 0){ html = "<p>Ippudu Pending News levu ✅</p>" }
