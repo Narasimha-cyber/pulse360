@@ -2,66 +2,28 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
+    <title>Admin Panel - Pulse360</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background: #f5f5f5;
-        }
-        .news-card {
-            background: white;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .news-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        .news-desc {
-            margin-bottom: 10px;
-        }
-        .news-image {
-            max-width: 200px;
-            margin-bottom: 10px;
-        }
-        button {
-            padding: 8px 15px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #45a049;
-        }
+        body {font-family: Arial; margin: 20px; background: #f5f5f5;}
+        .news-card {background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);}
+        .news-title {font-size: 20px; font-weight: bold; margin-bottom: 8px;}
+        .news-image {max-width: 300px; border-radius: 5px; margin: 10px 0;}
+        button {padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;}
+        button:hover {background: #218838;}
     </style>
-    <!-- Firebase SDK -->
     <script type="importmap">
-    {
-        "imports": {
-            "firebase/app": "https://cdn.jsdelivr.net/npm/firebase@10.7.1/+esm",
-            "firebase/firestore": "https://cdn.jsdelivr.net/npm/firebase@10.7.1/firestore/+esm"
-        }
-    }
+    {"imports": {"firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"}}
     </script>
 </head>
 <body>
     <h2>Admin Panel - Pending News</h2>
-    <div id="newsContainer">
-        <p>Loading pending news...</p>
-    </div>
+    <div id="newsContainer"><p>Loading pending news...</p></div>
 
     <script type="module">
         import { initializeApp } from 'firebase/app';
-        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+        import { getFirestore, collection, query, where, onSnapshot, doc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 
-        // Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyA4cKX7gqRw1vllvlgzW2tC9x3zYbX9sQ",
             authDomain: "pulse360news.firebaseapp.com",
@@ -71,77 +33,58 @@
             appId: "1:1234567890:web:abcd1234"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Get pending news
-        async function loadPendingNews() {
+        function loadPendingNews() {
             const newsContainer = document.getElementById('newsContainer');
-            newsContainer.innerHTML = '<p>Loading pending news...</p>';
+            const q = query(collection(db, 'pendingNews'), where('status', '==', 'pending'));
 
-            try {
-                const q = query(collection(db, 'pendingNews'), where('status', '==', 'pending'));
-                const querySnapshot = await getDocs(q);
-
-                if (querySnapshot.empty) {
+            onSnapshot(q, (snapshot) => {
+                if (snapshot.empty) {
                     newsContainer.innerHTML = '<p>No pending news</p>';
                     return;
                 }
-
                 let newsHTML = '';
-                querySnapshot.forEach((doc) => {
-                    const news = doc.data();
+                snapshot.forEach((docSnap) => {
+                    const news = docSnap.data();
                     newsHTML += `
                         <div class="news-card">
                             <div class="news-title">${news.title}</div>
-                            <img src="${news.image}" class="news-image">
-                            <div class="news-desc">${news.description}</div>
-                            <p>Reporter: ${news.reporterName} (${news.reporterEmail})</p>
-                            <button onclick="approveNews('${doc.id}')">Approve</button>
+                            <img src="${news.image}" class="news-image" onerror="this.style.display='none'">
+                            <div><b>Description:</b> ${news.description}</div>
+                            <div><b>Submitted:</b> ${news.createdAt ? new Date(news.createdAt.seconds*1000).toLocaleString() : ''}</div>
+                            <button onclick="approveNews('${docSnap.id}')">Approve</button>
                         </div>
                     `;
                 });
                 newsContainer.innerHTML = newsHTML;
-            } catch (e) {
-                newsContainer.innerHTML = `<p>Error: ${e.message}</p>`;
-            }
+            }, (error) => {
+                newsContainer.innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
+            });
         }
 
-        // Approve news
         window.approveNews = async function(docId) {
+            if(!confirm("Approve this news?")) return;
             try {
-                // Get news data
-                const newsDoc = await getDocs(query(collection(db, 'pendingNews'), where('__name__', '==', docId)));
-                let newsData = null;
-                newsDoc.forEach(doc => {
-                    newsData = doc.data();
+                const newsRef = doc(db, 'pendingNews', docId);
+                const newsSnap = await getDocs(query(collection(db, 'pendingNews'), where('__name__', '==', docId)));
+                let newsData;
+                newsSnap.forEach(d => newsData = d.data());
+
+                // publishedNews lo veyyi
+                await setDoc(doc(db, 'publishedNews', docId), {
+                    ...newsData,
+                    status: 'published',
+                    approvedAt: serverTimestamp()
                 });
-
-                if (newsData) {
-                    // Add to publishedNews
-                    await updateDoc(doc(db, 'pendingNews', docId), {
-                        status: 'approved'
-                    });
-
-                    // Move to publishedNews
-                    await addDoc(collection(db, 'publishedNews'), {
-                        ...newsData,
-                        status: 'published',
-                        approvedAt: new Date()
-                    });
-
-                    // Delete from pendingNews
-                    await deleteDoc(doc(db, 'pendingNews', docId));
-                }
-
-                loadPendingNews();
+                // pendingNews nunchi delete
+                await deleteDoc(newsRef);
+                alert('News Approved Successfully!');
             } catch (e) {
                 alert('Error: ' + e.message);
             }
         }
-
-        // Load news on page load
         loadPendingNews();
     </script>
 </body>
