@@ -5,13 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel - Pulse360</title>
 <style>
-body{font-family:Arial;background:#f1f1f1;padding:20px}
+body{font-family:Arial;background:#f1f1f1;padding:20px;margin:0}
 h1{text-align:center;color:#333}
-.card{background:white;padding:15px;margin:15px 0;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
-.card img{width:100%;max-height:300px;object-fit:cover;border-radius:5px}
-.btn{padding:10px 20px;border:none;border-radius:5px;color:white;cursor:pointer;margin-right:10px}
-.approve{background:green}
-.reject{background:red}
+.card{background:white;padding:15px;margin:15px auto;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1);max-width:600px}
+.card img{width:100%;max-height:300px;object-fit:cover;border-radius:5px;margin:10px 0}
+.btn{padding:10px 20px;border:none;border-radius:5px;color:white;cursor:pointer;margin-right:10px;font-weight:bold;font-size:16px}
+.approve{background:#28a745}
+.reject{background:#dc3545}
+#newsList{text-align:center}
 </style>
 </head>
 <body>
@@ -19,26 +20,30 @@ h1{text-align:center;color:#333}
 <div id="newsList">Loading...</div>
 
 <script>
-const SCRIPT_URL ="https://script.google.com/macros/s/AKfycbxOXkuZ2izsEs2OuyKgh15hGf9Bno2nS_5vlUDMbyGVZC9hamNvyfBv-WbmkuCx_9-o/exec"// Nee Apps Script URL
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxOXkuZ2izsEs2OuyKgh15hGf9Bno2nS_5vlUDMbyGVZC9hamNvyfBv-WbmkuCx_9-o/exec";
 
 async function loadNews(){
-  let res = await fetch(SCRIPT_URL + "?action=getPending");
-  let data = await res.json();
-  let html = "";
-  if(data.length === 0){ html = "<p>No Pending News</p>" }
-  data.forEach(item => {
-    html += `
-    <div class="card">
-      <h3>${item.name}</h3>
-      <p><b>Phone:</b> ${item.phone}</p>
-      <p><b>Story:</b> ${item.story}</p>
-      <img src="${item.photo}" />
-      <p><b>Time:</b> ${item.timestamp}</p>
-      <button class="btn approve" onclick="updateStatus('${item.row}', 'Approved')">Approve</button>
-      <button class="btn reject" onclick="updateStatus('${item.row}', 'Rejected')">Reject</button>
-    </div>`
-  });
-  document.getElementById("newsList").innerHTML = html;
+  try{
+    let res = await fetch(SCRIPT_URL + "?action=getPending");
+    let data = await res.json();
+    let html = "";
+    if(data.length === 0){ html = "<p>Ippudu Pending News levu ✅</p>" }
+    data.forEach(item => {
+      html += `
+      <div class="card">
+        <h3>${item.name}</h3>
+        <p><b>Phone:</b> ${item.phone}</p>
+        <p><b>Story:</b> ${item.story}</p>
+        <img src="${item.photo}" />
+        <p><b>Time:</b> ${item.timestamp}</p>
+        <button class="btn approve" onclick="updateStatus('${item.row}', 'Approved')">Approve</button>
+        <button class="btn reject" onclick="updateStatus('${item.row}', 'Rejected')">Reject</button>
+      </div>`
+    });
+    document.getElementById("newsList").innerHTML = html;
+  } catch(e){
+    document.getElementById("newsList").innerHTML = "<p>Error: Apps Script lo 'getPending' function add cheyyali</p>"
+  }
 }
 
 async function updateStatus(row, status){
