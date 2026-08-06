@@ -1,95 +1,148 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Admin - Pulse360</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
     <style>
-        body{font-family:sans-serif;padding:20px}
-        .card{border:1px solid #ddd;padding:15px;margin:10px 0;border-radius:8px}
-        .error{color:red;text-align:center;margin-top:100px;font-size:20px}
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .news-card {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .news-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .news-desc {
+            margin-bottom: 10px;
+        }
+        .news-image {
+            max-width: 200px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 8px 15px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
     </style>
+    <!-- Firebase SDK -->
+    <script type="importmap">
+    {
+        "imports": {
+            "firebase/app": "https://cdn.jsdelivr.net/npm/firebase@10.7.1/+esm",
+            "firebase/firestore": "https://cdn.jsdelivr.net/npm/firebase@10.7.1/firestore/+esm"
+        }
+    }
+    </script>
 </head>
 <body>
-    <h2 style="color:#ff6b35">Pending News Requests</h2>
-    <div id="content">Checking access...</div>
+    <h2>Admin Panel - Pending News</h2>
+    <div id="newsContainer">
+        <p>Loading pending news...</p>
+    </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script>
-        // 👇 SAME FIREBASE CONFIG
+    <script type="module">
+        import { initializeApp } from 'firebase/app';
+        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+
+        // Firebase config
         const firebaseConfig = {
-            apiKey: "AIzaSyAITlkoZIsMx99BDrj14I1S-ZtdEMsd1kc",
-            authDomain: "pulse360-news.firebaseapp.com",
-            projectId: "pulse360-news",
-            appId: "1:789441397313:web:ff3abd4184818b23d13cc0",
+            apiKey: "AIzaSyA4cKX7gqRw1vllvlgzW2tC9x3zYbX9sQ",
+            authDomain: "pulse360news.firebaseapp.com",
+            projectId: "pulse360news",
+            storageBucket: "pulse360news.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:abcd1234"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
 
-        // 👇👇👇 SECRET KEY LOGIC
-        const urlParams = new URLSearchParams(window.location.search);
-        const key = urlParams.get('key');
-        const SECRET_KEY = 'pulse360admin2026';
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        if(key !== SECRET_KEY){
-            document.getElementById('content').innerHTML = `
-                <div class="error">Access Denied ❌<br>
-                Use: admin.html?key=pulse360admin2026</div>
-            `;
-        } else {
-            document.getElementById('content').innerHTML = `
-                <h2 style="color:#ff6b35">Pending News Requests</h2>
-                <div id="loading">Loading...</div>
-                <div id="newsList"></div>
-            `;
-            loadRequests();
-        }
+        // Get pending news
+        async function loadPendingNews() {
+            const newsContainer = document.getElementById('newsContainer');
+            newsContainer.innerHTML = '<p>Loading pending news...</p>';
 
-        // 👇👇👇 DATA LOAD
-        function loadRequests(){
-            db.collection("pendingNews").where("status","==","pending")
-            .onSnapshot(snap => {
-                document.getElementById('loading').style.display='none';
-                let html = "";
-                snap.forEach(doc => {
-                    const n = doc.data();
-                    html += `
-                    <div class="card">
-                        <img src="${n.image}" width="200" style="border-radius:5px">
-                        <h3>${n.title}</h3>
-                        <p>${n.description}</p>
-                        <button onclick="approve('${doc.id}')" 
-                            style="background:green;color:white;padding:8px 15px;border:none;border-radius:5px;margin-right:10px">
-                            Approve
-                        </button>
-                        <button onclick="update('${doc.id}','rejected')" 
-                            style="background:red;color:white;padding:8px 15px;border:none;border-radius:5px">
-                            Reject
-                        </button>
-                    </div>`;
-                })
-                document.getElementById('newsList').innerHTML = html || "No pending requests";
-            })
-        }
+            try {
+                const q = query(collection(db, 'pendingNews'), where('status', '==', 'pending'));
+                const querySnapshot = await getDocs(q);
 
-        // 👇👇👇 APPROVE LOGIC
-        function approve(id){
-            const docRef = db.collection("pendingNews").doc(id);
-            docRef.get().then(doc => {
-                const data = doc.data();
-                // Publish cheyyi
-                db.collection("publishedNews").add(data)
-                .then(() => {
-                    // Pending nundi delete cheyyi
-                    docRef.delete();
-                    alert("News approved & published!");
+                if (querySnapshot.empty) {
+                    newsContainer.innerHTML = '<p>No pending news</p>';
+                    return;
+                }
+
+                let newsHTML = '';
+                querySnapshot.forEach((doc) => {
+                    const news = doc.data();
+                    newsHTML += `
+                        <div class="news-card">
+                            <div class="news-title">${news.title}</div>
+                            <img src="${news.image}" class="news-image">
+                            <div class="news-desc">${news.description}</div>
+                            <p>Reporter: ${news.reporterName} (${news.reporterEmail})</p>
+                            <button onclick="approveNews('${doc.id}')">Approve</button>
+                        </div>
+                    `;
                 });
-            });
+                newsContainer.innerHTML = newsHTML;
+            } catch (e) {
+                newsContainer.innerHTML = `<p>Error: ${e.message}</p>`;
+            }
         }
 
-        // 👇👇👇 UPDATE STATUS
-        function update(id,status){
-            db.collection("pendingNews").doc(id).update({status})
+        // Approve news
+        window.approveNews = async function(docId) {
+            try {
+                // Get news data
+                const newsDoc = await getDocs(query(collection(db, 'pendingNews'), where('__name__', '==', docId)));
+                let newsData = null;
+                newsDoc.forEach(doc => {
+                    newsData = doc.data();
+                });
+
+                if (newsData) {
+                    // Add to publishedNews
+                    await updateDoc(doc(db, 'pendingNews', docId), {
+                        status: 'approved'
+                    });
+
+                    // Move to publishedNews
+                    await addDoc(collection(db, 'publishedNews'), {
+                        ...newsData,
+                        status: 'published',
+                        approvedAt: new Date()
+                    });
+
+                    // Delete from pendingNews
+                    await deleteDoc(doc(db, 'pendingNews', docId));
+                }
+
+                loadPendingNews();
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
         }
+
+        // Load news on page load
+        loadPendingNews();
     </script>
 </body>
 </html>
