@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pulse360 News Submit</title>
+  <style>
+    body { 
+      font-family: Arial; 
+      max-width: 600px; 
+      margin: 20px auto; 
+      padding: 20px; 
+      background: #f5f5f5;
+    }
+    h2 { text-align: center; color: #ff6600; }
+    input, textarea, button { 
+      width: 100%; 
+      padding: 12px; 
+      margin: 10px 0; 
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    button { 
+      background: #ff6600; 
+      color: white; 
+      border: none; 
+      cursor: pointer; 
+      font-weight: bold;
+    }
+    button:hover { background: #e55a00; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    #status { text-align: center; font-weight: bold; margin-top: 15px; }
+   .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📰 Pulse360 News Submit</h2>
+    <input type="text" id="title" placeholder="News Title" required>
+    <textarea id="description" placeholder="News Description" rows="5" required></textarea>
+    <input type="file" id="photo" accept="image/*" required>
+    <button id="submitBtn" onclick="submitNews()">Submit News</button>
+    <p id="status"></p>
+  </div>
+
+  <script type="module">
+    // 1. Firebase Config - Nuv ichindi
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAITlkoZIsMx99BDrj14I1S-ZtdEMsd1kc",
+      authDomain: "pulse360-news.firebaseapp.com",
+      projectId: "pulse360-news",
+      storageBucket: "pulse360-news.firebasestorage.app",
+      messagingSenderId: "789441397313",
+      appId: "1:789441397313:web:ff3abd4184818b23d13cc0"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // 2. Cloudinary Config - Nuv screenshot lo ichindi
+    const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/id6mifgm/image/upload";
+    const UPLOAD_PRESET = "reporter_upload";
+
+    async function submitNews() {
+      const title = document.getElementById('title').value;
+      const description = document.getElementById('description').value;
+      const file = document.getElementById('photo').files[0];
+      const status = document.getElementById('status');
+      const btn = document.getElementById('submitBtn');
+
+      if(!title ||!description ||!file) {
+        status.innerText = "❌ Please fill all fields";
+        return;
+      }
+
+      btn.disabled = true;
+      status.innerText = "📤 Uploading Photo...";
+
+      try {
+        // Photo Cloudinary ki upload
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', UPLOAD_PRESET);
+        const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
+        const photoData = await res.json();
+
+        if(!photoData.secure_url) throw new Error("Photo upload failed");
+
+        status.innerText = "💾 Saving to Database...";
+
+        // Data Firebase ki save
+        await addDoc(collection(db, "news"), {
+          title: title,
+          description: description,
+          imageUrl: photoData.secure_url,
+          status: "pending", // Admin approve cheyyali
+          createdAt: serverTimestamp()
+        });
+
+        status.innerText = "✅ News Submitted Successfully! Admin review chestharu";
+        document.getElementById('title').value = "";
+        document.getElementById('description').value = "";
+        document.getElementById('photo').value = "";
+
+      } catch(error) {
+        status.innerText = "❌ Error: " + error.message;
+      }
+      
+      btn.disabled = false;
+    }
+  </script>
+</body>
+</html>
