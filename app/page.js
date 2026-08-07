@@ -245,9 +245,20 @@ const handleSubmitNews = (e) => {
 
       {/* News Grid */}
       <section style={{maxWidth:'1200px', margin:'0 auto', padding:'24px 16px'}}>
-        <h2 style={{textAlign:'center', marginBottom:'20px', fontSize:'22px'}}>
-          {activeTab === 'AP'? 'AP Live News' : activeTab === 'India'? 'India Live News' : activeTab === 'OurArticles'? 'Eluru News' : 'Latest News'}
-        </h2>
+       <h2 style={{textAlign:'center', marginBottom:'20px', fontSize:'22px'}}>
+  {activeTab === 'AP' ? 'AP Live News' 
+   : activeTab === 'India' ? 'India Live News' 
+   : activeTab === 'Eluru' ? 'Eluru / User News' // <-- Idila marchu
+   : `${activeTab} Live News`}
+</h2>
+{(() => {
+  const filteredArticles = activeTab === 'All'
+    ? liveNews.filter(a => a.region !== 'OurArticles') // All lo OurArticles vaddu
+    : activeTab === 'Eluru'
+      ? liveNews.filter(a => a.region === 'Eluru' || a.region === 'OurArticles') // Eluru lo rendu
+      : liveNews.filter(a => a.region === activeTab); // Vere tabs normal
+
+  return (
         {loading? <p style={{textAlign:'center', fontSize:'18px'}}>Loading Live News...</p> :
         <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap:'20px', justifyItems: 'center'}}>
           {filteredArticles.map(article => (
