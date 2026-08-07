@@ -45,7 +45,7 @@ useEffect(() => {
 // Firebase nunchi top reporter ni count chesi teesetundi
 const getTopReporterFromFirebase = async () => {
   try {
-    const q = query(collection(db, "news"));
+    const q = query(collection(db, "publishedNews"));
     const snapshot = await getDocs(q);
 
     const counts = {};
@@ -67,6 +67,40 @@ const getTopReporterFromFirebase = async () => {
     console.error("Error getting top reporter", e);
   }
 }
+  // Firebase nunchi publishedNews ni website lo chupinchadam
+useEffect(() => {
+  const fetchPublishedNews = async () => {
+    setLoading(true);
+    try {
+      const q = query(collection(db, "publishedNews"));
+      const snapshot = await getDocs(q);
+
+      const firebaseNews = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          region: data.city === 'Eluru'? 'OurArticles' : 'AP', 
+          title: data.title,
+          category: "Local",
+          summary: data.description?.slice(0,150) + "...",
+          content: data.description,
+          date: data.createdAt?.toDate().toLocaleDateString() || new Date().toLocaleDateString(),
+          url: "#",
+          imageUrl: data.imageUrl || "https://via.placeholder.com/400",
+          author: data.author || "Admin"
+        }
+      });
+
+      setLiveNews(firebaseNews); // idhi important
+
+    } catch (error) {
+      console.error("Error fetching news:", error);
+    }
+    setLoading(false);
+  };
+  
+  fetchPublishedNews();
+}, []);
   const ourArticles = [
     {
       id: 'our-1',
