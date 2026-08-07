@@ -253,15 +253,16 @@ const handleSubmitNews = (e) => {
 </h2>
 {(() => {
   const filteredArticles = activeTab === 'All'
-    ? liveNews.filter(a => a.region !== 'OurArticles') // All lo OurArticles vaddu
+    ? liveNews.filter(a => a.region !== 'OurArticles')
     : activeTab === 'Eluru'
-      ? liveNews.filter(a => a.region === 'Eluru' || a.region === 'OurArticles') // Eluru lo rendu
-      : liveNews.filter(a => a.region === activeTab); // Vere tabs normal
+      ? liveNews.filter(a => a.region === 'Eluru' || a.region === 'OurArticles')
+      : liveNews.filter(a => a.region === activeTab);
+
+  if(loading) return <p style={{textAlign:'center', fontSize:'18px'}}>Loading Live News...</p>
 
   return (
-        {loading? <p style={{textAlign:'center', fontSize:'18px'}}>Loading Live News...</p> :
-        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap:'20px', justifyItems: 'center'}}>
-          {filteredArticles.map(article => (
+    <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap:'20px', justifyItems:'center'}}>
+      {filteredArticles.map(article => (
             <div key={article.id} style={{background:colors.card, padding:'18px', borderRadius:'16px', border:`1px solid ${colors.border}`, display:'flex', flexDirection:'column', width:'100%', maxWidth:'400px'}}>
               {article.image && <img src={article.image} alt={article.title} style={{width:'100%', height:'180px', objectFit:'cover', borderRadius:'10px', marginBottom:'10px'}}/>}
               <div style={{display:'flex', gap:'8px', marginBottom:'8px'}}>
