@@ -68,25 +68,30 @@
       }
     });
 
-    // Pending news load cheyadam
-    async function loadPending(){
-      const querySnapshot = await getDocs(collection(db, "pendingNews"));
-      let html = '';
-      querySnapshot.forEach((docSnap) => {
-        const news = docSnap.data();
-        html += `
-          <div class="card">
-            <h3>${news.title}</h3>
-            <img src="${news.image}" style="max-width:200px">
-            <p>${news.description}</p>
-            <small>By: ${news.reporterName}</small><br><br>
-            <button class="btn-approve" onclick="approveNews('${docSnap.id}')">Approve</button>
-            <button class="btn-delete" onclick="deleteNews('${docSnap.id}')">Delete</button>
-          </div>
-        `;
-      });
-      document.getElementById('pendingList').innerHTML = html || 'No pending news';
-    }
+  // Pending news load cheyadam
+async function loadPending(){
+  const querySnapshot = await getDocs(collection(db, "pendingNews")); // query teesesa
+  let html = '';
+  
+  querySnapshot.forEach((docSnap) => {
+    const news = docSnap.data();
+    
+    if(news.status !== "pending") return; // <-- idhi important
+    
+    html += `
+    <div class="card">
+      <h3>${news.title}</h3>
+      <img src="${news.image}" style="max-width:200px">
+      <p>${news.description}</p>
+      <small>By: ${news.reporterName || 'Anonymous'}</small><br><br>
+      <button class="btn-approve" onclick="approveNews('${docSnap.id}')">Approve</button>
+      <button class="btn-delete" onclick="deleteNews('${docSnap.id}')">Delete</button>
+    </div>
+    `;
+  });
+  
+  document.getElementById('pendingList').innerHTML = html || 'No pending news';
+}
 
     // Approve function
     window.approveNews = async (id) => {
