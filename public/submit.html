@@ -1,50 +1,13 @@
 <!DOCTYPE html>
-<html>
-<head><title>Submit News - Pulse360</title></head>
-<body>
-<h2>📢 Submit News</h2>
-<form id="newsForm">
-  <input type="text" name="title" placeholder="News Title" required><br><br>
-  <textarea name="description" placeholder="News Description" rows="5" required></textarea><br><br>
-  <input type="file" name="image" accept="image/*" required><br><br>
-  <button type="submit">Submit News</button>
-</form>
-
+<html><head><title>Submit</title></head><body>
+<h2>Submit News</h2>
+<form id="f"><input name="title" required><textarea name="desc" required></textarea><input type="file" name="img" required><button>Submit</button></form>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAITlkoZIsMx99BDrj14I1S-ZtdEMsd1kc",
-      authDomain: "pulse360-news.firebaseapp.com",
-      projectId: "pulse360-news",
-      storageBucket: "pulse360-news.firebasestorage.app",
-      appId: "1:789441397313:web:ff3abd4184818b23d13cc0",
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-    const CLOUD_NAME = "ld6mifgm";
-    const UPLOAD_PRESET = "reporter_upload";
-
-    document.getElementById('newsForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      await auth.signInAnonymously();
-      const formData = new FormData();
-      formData.append('file', e.target.image.files[0]);
-      formData.append('upload_preset', UPLOAD_PRESET);
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {method: 'POST', body: formData});
-      const data = await res.json();
-      await db.collection("pendingNews").add({
-        title: e.target.title.value,
-        description: e.target.description.value,
-        image: data.secure_url,
-        status: "pending",
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      alert("✅ News submitted!");
-      e.target.reset();
-    });
-</script>
-</body>
-</html>
+const firebaseConfig = {apiKey:"AIzaSyAITlkoZIsMx99BDrj14I1S-ZtdEMsd1kc",authDomain:"pulse360-news.firebaseapp.com",projectId:"pulse360-news"};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore(); const auth = firebase.auth();
+document.getElementById('f').addEventListener('submit', async e=>{e.preventDefault();await auth.signInAnonymously();await db.collection("pendingNews").add({title:e.target.title.value,description:e.target.desc.value,createdAt:firebase.firestore.FieldValue.serverTimestamp()});alert("Submitted to Admin")})
+</script></body></html>
