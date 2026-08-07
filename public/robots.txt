@@ -1,4 +1,3 @@
 User-agent: *
 Allow: /
-
-Sitemap: https://pulse360.in/sitemap.xml
+Sitemap: https://www.pulse360news.in/sitemap.xml
