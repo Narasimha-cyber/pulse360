@@ -289,7 +289,7 @@ const handleSubmitNews = (e) => {
               </div>
             </div>
           ))}
-        </div>}
+        </div>
           )})()}
         <div style={{width:'100%', height:'250px', background: colors.border, borderRadius:'8px', margin:'24px 0', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px', color: colors.muted}}>Ad Slot - Footer Banner</div>
       </section>
