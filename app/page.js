@@ -12,6 +12,8 @@ export default function Home() {
   const [liveNews, setLiveNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [breakingIndex, setBreakingIndex] = useState(0);
+  const [topReporter, setTopReporter] = useState({name: 'Narasimha Rao', posts: 24});
+  const [showMonthlyBanner, setShowMonthlyBanner] = useState(false);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
   const [submitData, setSubmitData] = useState({
     name: '',
@@ -20,6 +22,16 @@ export default function Home() {
     description: '',
     photo: null
   });
+})); // Line 24
+
+// IDHI KOTHA GA ADD CHEY
+useEffect(() => {
+  const today = new Date();
+  if(today.getDate() === 1){
+    setShowMonthlyBanner(true);
+    setTimeout(() => setShowMonthlyBanner(false), 24 * 60 * 60 * 1000); // 24 hours
+  }
+}, []);
 
   // Nuv rayalsina 2 articles
   const ourArticles = [
@@ -132,9 +144,34 @@ export default function Home() {
     const shareUrl = url === "#"? window.location.href : url;
     window.open(`https://wa.me/?text=${encodeURIComponent(title + ' - ' + shareUrl)}`, '_blank');
   };
-  const handleSubmitNews = (e) => {
+ const [topReporter, setTopReporter] = useState({name: 'Narasimha Rao', posts: 24});
+const [showMonthlyBanner, setShowMonthlyBanner] = useState(false);
+
+useEffect(() => {
+  const today = new Date();
+  if(today.getDate() === 1){
+    setShowMonthlyBanner(true);
+    setTimeout(() => setShowMonthlyBanner(false), 24 * 60 * 60 * 1000);
+  }
+}, []);
+
+const handleSubmitNews = (e) => {
     e.preventDefault();
-    alert('News submitted successfully! We will review it.');
+    
+    const newArticle = {
+      id: `our-${Date.now()}`,
+      region: 'OurArticles', // <-- Iddhe key. All lo raadu
+      title: submitData.title,
+      category: "User Submit",
+      summary: submitData.description.slice(0,150) + "...",
+      content: submitData.description,
+      date: new Date().toLocaleDateString(),
+      url: "#",
+      author: submitData.name
+    };
+    
+    setLiveNews(prev => [newArticle, ...prev]);
+    alert('News submitted successfully! Eluru section lo kanipisthundi');
     setShowSubmitForm(false);
     setSubmitData({name:'', phone:'', title:'', description:'', photo:null});
   };
@@ -142,7 +179,14 @@ export default function Home() {
   const tabs = ['All', 'AP', 'India', 'OurArticles'];
   return (
     <main style={{ width:'100%', background:colors.bg, color:colors.text, minHeight:'100vh', fontFamily:'system-ui' }}>
-
+{/* Monthly Best Reporter Banner - Month 1st 24 hours */}
+      {showMonthlyBanner && (
+        <div style={{background:'linear-gradient(90deg, #f59e0b, #d97706)', color:'#fff', padding:'16px', textAlign:'center', fontWeight:'bold', fontSize:'15px'}}>
+          🏆 Congratulations {topReporter.name}! 
+          You are "{new Date().toLocaleString('default', { month: 'long' })} 2026 Best Reporter" 
+          with {topReporter.posts} posts. Thank you for being part of our Pulse360 Community! 🏆
+        </div>
+      )}
       {/* Submit News Modal */}
       {showSubmitForm && (
         <div style={{position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.7)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px'}}>
@@ -216,7 +260,12 @@ export default function Home() {
                 <span style={{fontSize:'11px', background: article.region === 'India'? '#ef4444' : article.region === 'AP'? '#3b82f6' : '#10b981', color:'#fff', padding:'4px 10px', borderRadius:'6px', fontWeight:'600'}}>{article.region}</span>
                 <span style={{fontSize:'11px', color:colors.muted}}>{article.date}</span>
               </div>
-              <h3 style={{fontSize:'17px', marginBottom:'8px', lineHeight:'1.4'}}>{article.title}</h3>
+            <h3 style={{fontSize:'17px', marginBottom:'8px', lineHeight:'1.4'}}>
+  {article.title}
+  {article.author === topReporter.name && (
+    <span style={{marginLeft:'8px', fontSize:'11px', background:'#f59e0b', color:'#fff', padding:'3px 8px', borderRadius:'6px'}}>👑 Best Reporter</span>
+  )}
+</h3>
               <p style={{fontSize:'14px', color:colors.muted, marginBottom:'14px', flexGrow:1}}>{article.summary}</p>
               <a href={article.url} target="_blank" rel="noopener noreferrer" style={{color:'#3b82f6', fontWeight:'600', marginBottom:'10px', textDecoration:'none'}}>Read More →</a>
               <div style={{width:'100%', height:'90px', background: colors.border, borderRadius:'8px', margin:'10px 0', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', color: colors.muted}}>Ad Slot</div>
