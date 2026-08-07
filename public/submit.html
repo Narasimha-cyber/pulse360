@@ -2,34 +2,38 @@
 <html>
 <head>
   <title>Submit News - Pulse360</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body{background:#fff5f0;font-family:sans-serif;padding:20px}
-    .form{background:white;padding:20px;border-radius:10px;max-width:500px;margin:auto;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
-    input,textarea{width:100%;padding:10px;margin:10px 0;border:1px solid #ddd;border-radius:5px}
-    button{background:#ff6b35;color:white;border:none;padding:12px 20px;border-radius:5px;cursor:pointer;width:100%;font-weight:bold}
-    button:disabled{opacity:0.6}
+    body{background:#fff5f0;font-family:sans-serif;padding:20px;margin:0}
+  .form{background:white;padding:25px;border-radius:12px;max-width:500px;margin:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+    h2{color:#ff6b35;text-align:center;margin-bottom:20px}
+    input,textarea{width:100%;padding:12px;margin:10px 0;border:1px solid #ddd;border-radius:6px;box-sizing:border-box;font-size:14px}
+    button{background:#ff6b35;color:white;border:none;padding:14px 20px;border-radius:6px;cursor:pointer;width:100%;font-weight:bold;font-size:16px}
+    button:disabled{opacity:0.6;cursor:not-allowed}
   </style>
 </head>
 <body>
   <div class="form">
-    <h2 style="color:#ff6b35">📢 Submit News</h2>
+    <h2>📢 Submit News</h2>
     <form>
       <input type="text" name="title" placeholder="News Title" required>
-      <textarea name="description" placeholder="News Description" rows="4" required></textarea>
+      <textarea name="description" placeholder="News Description" rows="5" required></textarea>
       <input type="file" name="image" accept="image/*" required>
       <button type="submit">Submit News</button>
     </form>
   </div>
 
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAITlkoZIsMx99BDrj14I1S-ZtdEMsd1kc",
       authDomain: "pulse360-news.firebaseapp.com",
       projectId: "pulse360-news",
-      storageBucket: "pulse360-news.appspot.com",
+      storageBucket: "pulse360-news.firebasestorage.app", // 👈 Console lo unnadhe
       appId: "1:789441397313:web:ff3abd4184818b23d13cc0",
     };
 
@@ -47,34 +51,44 @@
       btn.disabled = true;
 
       try {
+        // 1. Anonymous login - idi chala important
         await auth.signInAnonymously();
+        console.log("✅ Login Success:", auth.currentUser.uid);
 
         const title = e.target.title.value;
         const description = e.target.description.value;
         const file = e.target.image.files[0];
 
+        if(!file) throw new Error("Please select an image");
+
+        // 2. Cloudinary upload
         const formData = new FormData();
-        formData.append('image', file);
+        formData.append('file', file); // 👈 'file' undali
         formData.append('upload_preset', UPLOAD_PRESET);
 
         const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-          method: 'POST', 
+          method: 'POST',
           body: formData
         });
-        const data = await res.json();
 
+        const data = await res.json();
+        if(!data.secure_url) throw new Error("Image upload failed");
+
+        // 3. Firebase lo save
         await db.collection("pendingNews").add({
-          title, 
-          description, 
-          image: data.url, 
-          status: "pending", 
+          title,
+          description,
+          image: data.secure_url, // 👈 secure_url
+          status: "pending",
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        alert("✅ News submitted! Admin approval kosam wait cheyyandi");
+        alert("✅ News submitted successfully! Admin approval kosam wait cheyyandi");
         e.target.reset();
+
       } catch (error) {
-        alert("❌ Error: " + error.message);
+        console.error("❌ Error:", error);
+        alert("Error: " + error.message);
       } finally {
         btn.innerText = "Submit News";
         btn.disabled = false;
