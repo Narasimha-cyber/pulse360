@@ -26,6 +26,8 @@ export default function Home() {
   const [comments, setComments] = useState({});
   const [newComment, setNewComment] = useState({});
   const [liveNews, setLiveNews] = useState([]);
+  const [selectedArticle, setSelectedArticle] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [breakingIndex, setBreakingIndex] = useState(0);
   const [topReporter, setTopReporter] = useState({name: 'Narasimha Rao', posts: 24});
@@ -150,9 +152,9 @@ const getTopReporterFromFirebase = async () => {
         summary: data.description?.slice(0,150) + "...",
         content: data.description,
         date: data.createdAt?.toDate().toLocaleDateString() || new Date().toLocaleDateString(),
-        url: "#",
+        url: `/article/${doc.id}`,
         imageUrl: data.imageUrl || "https://via.placeholder.com/400",
-        author: data.author || "Admin"
+        authuor: data.author || "Admin"
       }
     });
     // 👆 IDHI VARAKU ADD CHEY
@@ -330,7 +332,12 @@ else setLiveNews([...firebaseNews,...apiArticles]);
                     )}
                   </h3>
                   <p style={{fontSize:'14px', color:colors.muted, marginBottom:'14px', flexGrow:1}}>{article.summary}</p>
-                  <a href={article.url} target="_blank" rel="noopener noreferrer" style={{color:'#3b82f6', fontWeight:'600', marginBottom:'10px', textDecoration:'none'}}>Read More →</a>
+                 <button 
+  onClick={() => {setSelectedArticle(article); setShowModal(true)}}
+  style={{color:'#3b82f6', fontWeight:'600', marginBottom:'10px', background:'none', border:'none', cursor:'pointer', textAlign:'left', fontSize:'14px'}}
+>
+  Read More →
+</button>
                   <div style={{width:'100%', height:'90px', background: colors.border, borderRadius:'8px', margin:'10px 0', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', color: colors.muted}}>Ad Slot</div>
                   <div style={{display:'flex', gap:'8px', marginBottom:'10px', flexWrap:'wrap'}}>
                     <button onClick={()=>handleLike(article.id)} style={{padding:'6px 10px', borderRadius:'8px', border:`1px solid ${colors.border}`, background:colors.bg, cursor:'pointer', fontSize:'13px'}}>❤️ Like ({likes[article.id] || 0})</button>
@@ -347,7 +354,17 @@ else setLiveNews([...firebaseNews,...apiArticles]);
           )})()}
         <div style={{width:'100%', height:'250px', background: colors.border, borderRadius:'8px', margin:'24px 0', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px', color: colors.muted}}>Ad Slot - Footer Banner</div>
       </section>
-
+{showModal && (
+  <div style={{position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.7)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px'}} onClick={() => setShowModal(false)}>
+    <div style={{background:colors.card, padding:'24px', borderRadius:'16px', maxWidth:'700px', width:'100%', maxHeight:'90vh', overflowY:'auto'}} onClick={(e) => e.stopPropagation()}>
+      <button onClick={() => setShowModal(false)} style={{float:'right', fontSize:'30px', background:'none', border:'none', cursor:'pointer', color:colors.text}}>×</button>
+      <h2 style={{fontSize:'24px', fontWeight:'bold', marginBottom:'8px', paddingRight:'30px'}}>{selectedArticle?.title}</h2>
+      <p style={{fontSize:'14px', color:colors.muted, marginBottom:'16px'}}>{selectedArticle?.date} | By {selectedArticle?.author}</p>
+      <img src={selectedArticle?.imageUrl} style={{width:'100%', borderRadius:'10px', marginBottom:'16px'}} alt={selectedArticle?.title} />
+      <p style={{whiteSpace:'pre-line', lineHeight:'1.6', fontSize:'15px'}}>{selectedArticle?.content}</p>
+    </div>
+  </div>
+)}
       <footer style={{background: colors.card, borderTop:`1px solid ${colors.border}`, textAlign:'center', padding:'24px 16px'}}>
         <div style={{maxWidth:'1200px', margin:'0 auto'}}>
           <div style={{display:'flex', gap:'16px', justifyContent:'center', marginBottom:'14px', flexWrap:'wrap'}}>
