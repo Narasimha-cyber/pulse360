@@ -22,7 +22,6 @@ export default function Home() {
     description: '',
     photo: null
   });
-})); // Line 24
 
 // IDHI KOTHA GA ADD CHEY
 useEffect(() => {
