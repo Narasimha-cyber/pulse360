@@ -76,6 +76,7 @@ export default function Home() {
         console.log("Breaking News Error:", error);
       }
     };
+
     fetchBreaking();
     const interval = setInterval(fetchBreaking, 60000);
     return () => clearInterval(interval);
@@ -89,8 +90,7 @@ export default function Home() {
       setLiveNews(prev => [...mapped,...prev.filter(p => p.region!== 'OurArticles')])
     }
   }, [])
-
-  useEffect(() => {
+    useEffect(() => {
     const fetchNews = async () => {
       setLoading(true);
       try {
@@ -113,16 +113,15 @@ export default function Home() {
           image: item.image
         })) || [];
 
-        if(activeTab === 'All')
-          setLiveNews([...apiArticles]);
-        else
-          setLiveNews(apiArticles);
+        if(activeTab === 'All') setLiveNews([...apiArticles]);
+        else setLiveNews(apiArticles);
       } catch (error) {
         console.log("Error:", error);
         setLiveNews(ourArticles);
       }
       setLoading(false);
     };
+
     fetchNews();
   }, [activeTab]);
 
@@ -140,6 +139,7 @@ export default function Home() {
     setComments(prev => ({...prev, [id]: [...(prev[id] || []), newComment[id]]}));
     setNewComment(prev => ({...prev, [id]: ''}))
   };
+
   const handleWhatsAppShare = (title, url) => {
     const shareUrl = url === "#"? window.location.href : url;
     window.open(`https://wa.me/?text=${encodeURIComponent(title + ' - ' + shareUrl)}`, '_blank');
@@ -160,37 +160,24 @@ export default function Home() {
       author: submitData.name,
       photo: submitData.photo
     };
+
     const existing = JSON.parse(localStorage.getItem('eluruReporter_submissions') || '[]')
     localStorage.setItem('eluruReporter_submissions', JSON.stringify([newArticle,...existing]))
     alert('News submitted! Admin approval taruvata publish avthundi');
     setShowSubmitForm(false);
     setSubmitData({name:'', phone:'', title:'', description:'', photo:null});
   };
-    const tabs = ['All', 'AP', 'India', 'OurArticles'];
+
+  const tabs = ['All', 'AP', 'India', 'OurArticles'];
 
   return (
-    <main style={{
-      width:'100%',
-      background:colors.bg,
-      color:colors.text,
-      minHeight:'100vh',
-      fontFamily:'system-ui'
-    }}>
-      {/* Monthly Best Reporter Banner */}
+    <main style={{ width:'100%', background:colors.bg, color:colors.text, minHeight:'100vh', fontFamily:'system-ui' }}>
       {showMonthlyBanner && (
-        <div style={{
-          background:'linear-gradient(90deg, #f59e0b, #d97706)',
-          color:'#fff',
-          padding:'16px',
-          textAlign:'center',
-          fontWeight:'bold',
-          fontSize:'15px'
-        }}>
+        <div style={{ background:'linear-gradient(90deg, #f59e0b, #d97706)', color:'#fff', padding:'16px', textAlign:'center', fontWeight:'bold', fontSize:'15px' }}>
           🏆 Congratulations {topReporter.name}! You are "{new Date().toLocaleString('default', { month: 'long' })} 2026 Best Reporter" with {topReporter.posts} posts. 🏆
         </div>
       )}
 
-      {/* Submit News Modal - Ide form */}
       {showSubmitForm && (
         <div style={{position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.7)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px'}}>
           <div style={{background:colors.card, padding:'24px', borderRadius:'16px', maxWidth:'500px', width:'100%'}}>
@@ -210,7 +197,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Header - IKKADA SUBMIT BUTTON TEESAM */}
       <header style={{position:'sticky', top:0, zIndex:10, background:colors.bg, borderBottom:`1px solid ${colors.border}`}}>
         <div style={{maxWidth:'1200px', margin:'0 auto', padding:'12px 16px', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap'}}>
           <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
@@ -218,43 +204,36 @@ export default function Home() {
             <h1 style={{fontSize:'22px', fontWeight:'bold', color:'#3b82f6'}}>Pulse360</h1>
           </div>
           <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-            {/* SUBMIT BUTTON REMOVE CHESAM */}
             <button onClick={()=>setDarkMode(!darkMode)} style={{fontSize:'20px', background:'none', border:'none', cursor:'pointer'}}>{darkMode? '☀️' : '🌙'}</button>
           </div>
         </div>
 
-        {/* Eluru / All News Toggle - IKKADA LINK ADD CHESAM */}
         <div style={{display:'flex', gap:'8px', justifyContent:'center', padding:'10px 16px', background:colors.card, flexDirection:'column', alignItems:'center'}}>
           <div style={{display:'flex', gap:'8px'}}>
             <button onClick={()=>setActiveTab('All')} style={{padding:'8px 16px', borderRadius:'8px', border:'none', background: activeTab === 'All'? '#3b82f6' : colors.border, color: activeTab === 'All'? '#fff' : colors.text, fontWeight:'600', cursor:'pointer'}}>All News</button>
             <button onClick={()=>setActiveTab('OurArticles')} style={{padding:'8px 16px', borderRadius:'8px', border:'none', background: activeTab === 'OurArticles'? '#ef4444' : colors.border, color: activeTab === 'OurArticles'? '#fff' : colors.text, fontWeight:'600', cursor:'pointer'}}>Eluru</button>
           </div>
-{/* IDHI KOTHA GA ADD CHESAM - ELURU CLICK CHESTE LINK VASTHUNDI */}
-{activeTab === 'OurArticles' && (
-  <div style={{background:'#1a1a1a', padding:'15px', borderRadius:'10px', textAlign:'center', marginTop:'10px', width:'90%', border:'1px dashed #00ff88'}}>
-    <p style={{color:'#00ff88', fontSize:'14px', margin:'0 0 8px', fontWeight:'600'}}>
-      Please Submit Your News From This Link:
-    </p>
-    {/* NUVVE IKKADA LINK PETTU BRO */}
-    <a href="https://pulse360-black.vercel.app/submit.html" target="_blank"
-       style={{display:'inline-block', background:'#00ff88', color:'#000', padding:'10px 20px', 
-               borderRadius:'8px', textDecoration:'none', fontWeight:'bold', fontSize:'15px'}}>
-       [SUBMIT YOUR NEWS-ELURU]
-    </a>
-  </div>
-)}
 
-        {/* Breaking News */}
+          {activeTab === 'OurArticles' && (
+            <div style={{background:'#1a1a1a', padding:'15px', borderRadius:'10px', textAlign:'center', marginTop:'10px', width:'90%', border:'1px dashed #00ff88'}}>
+              <p style={{color:'#00ff88', fontSize:'14px', margin:'0 0 8px', fontWeight:'600'}}>
+                Please Submit Your News From This Link:
+              </p>
+              <a href="https://pulse360-black.vercel.app/submit.html" target="_blank" style={{display:'inline-block', background:'#00ff88', color:'#000', padding:'10px 20px', borderRadius:'8px', textDecoration:'none', fontWeight:'bold', fontSize:'15px'}}>
+                [SUBMIT YOUR NEWS-ELURU]
+              </a>
+            </div>
+          )}
+        </div>
+
         <div style={{background:'linear-gradient(90deg, #ef4444, #dc2626)', color:'#fff', padding:'10px 0', textAlign:'center', fontWeight:'bold', fontSize:'13px'}}>
           {breakingNews[breakingIndex]}
         </div>
 
-        {/* Search */}
         <div style={{maxWidth:'1200px', margin:'0 auto', padding:'12px 16px'}}>
           <input type="text" placeholder="Search news..." value={searchQuery} onChange={(e)=>setSearchQuery(e.target.value)} style={{width:'100%', padding:'10px 14px', borderRadius:'10px', border:`1px solid ${colors.border}`, background:colors.card, color:colors.text, fontSize:'14px'}} />
         </div>
 
-        {/* Other Tabs */}
         <div style={{display:'flex', gap:'8px', justifyContent:'center', padding:'0 16px 12px', flexWrap:'wrap'}}>
           {['AP', 'India'].map(tab => (
             <button key={tab} onClick={()=>setActiveTab(tab)} style={{ padding:'8px 14px', borderRadius:'8px', border:'none', background: activeTab === tab? '#3b82f6' : colors.card, color: activeTab === tab? '#fff' : colors.text, fontWeight:'600', cursor:'pointer', fontSize:'13px' }}>
@@ -264,7 +243,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* News Grid */}
       <section style={{maxWidth:'1200px', margin:'0 auto', padding:'24px 16px'}}>
         <h2 style={{textAlign:'center', marginBottom:'20px', fontSize:'22px'}}>
           {activeTab === 'AP'? 'AP Live News' : activeTab === 'India'? 'India Live News' : activeTab === 'OurArticles'? 'Eluru / User News' : `${activeTab} Live News`}
@@ -283,7 +261,9 @@ export default function Home() {
                   </div>
                   <h3 style={{fontSize:'17px', marginBottom:'8px', lineHeight:'1.4'}}>
                     {article.title}
-                    {article.author === topReporter.name && ( <span style={{marginLeft:'8px', fontSize:'11px', background:'#f59e0b', color:'#fff', padding:'3px 8px', borderRadius:'6px'}}>👑 Best Reporter</span> )}
+                    {article.author === topReporter.name && (
+                      <span style={{marginLeft:'8px', fontSize:'11px', background:'#f59e0b', color:'#fff', padding:'3px 8px', borderRadius:'6px'}}>👑 Best Reporter</span>
+                    )}
                   </h3>
                   <p style={{fontSize:'14px', color:colors.muted, marginBottom:'14px', flexGrow:1}}>{article.summary}</p>
                   <a href={article.url} target="_blank" rel="noopener noreferrer" style={{color:'#3b82f6', fontWeight:'600', marginBottom:'10px', textDecoration:'none'}}>Read More →</a>
@@ -304,7 +284,6 @@ export default function Home() {
         <div style={{width:'100%', height:'250px', background: colors.border, borderRadius:'8px', margin:'24px 0', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px', color: colors.muted}}>Ad Slot - Footer Banner</div>
       </section>
 
-      {/* Footer */}
       <footer style={{background: colors.card, borderTop:`1px solid ${colors.border}`, textAlign:'center', padding:'24px 16px'}}>
         <div style={{maxWidth:'1200px', margin:'0 auto'}}>
           <div style={{display:'flex', gap:'16px', justifyContent:'center', marginBottom:'14px', flexWrap:'wrap'}}>
