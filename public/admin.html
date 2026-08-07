@@ -1,85 +1,81 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Admin Login - Pulse360</title>
-<style>
-  body{font-family:'Segoe UI',Arial;background:#0a0a0a;color:#fff;margin:0;padding:20px;text-align:center}
-  h1{color:#00ff88}
-  .card{background:#1a1a1a;padding:20px;margin:15px 0;border-radius:10px;border-left:4px solid #00ff88;text-align:left}
-  .btn{background:#00ff88;color:#000;border:none;padding:10px 20px;border-radius:6px;font-weight:bold;cursor:pointer;margin:5px}
-  input{padding:10px;width:300px;border-radius:5px;border:none;margin:10px}
-</style>
-</head>
-<body>
-<h1>🛡️ Pulse360 Admin Panel</h1>
-
-<div id="loginDiv">
-  <p>Nee admin email tho login cheyi</p>
-  <button class="btn" onclick="login()">Login with Google</button>
-</div>
-
-<div id="adminDiv" style="display:none">
-  <button class="btn" onclick="logout()">Logout</button>
-  <div id="pendingList">Loading...</div>
-</div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-  import { getFirestore, collection, onSnapshot, doc, deleteDoc, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAITlkoZIsMx99BDrj14I1S-ZtdEMsd1kc",
-    authDomain: "pulse360-news.firebaseapp.com",
-    projectId: "pulse360-news"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth();
-  const provider = new GoogleAuthProvider();
-
-  const loginDiv = document.getElementById('loginDiv');
-  const adminDiv = document.getElementById('adminDiv');
-
-  // Login button
-  window.login = () => signInWithPopup(auth, provider);
-  window.logout = () => signOut(auth);
-
-  // Login ayithe admin page chupinchadam
-  onAuthStateChanged(auth, (user) => {
-    if (user && user.email === 'narasimharaokilli@gmail.com') { // Nee email
-      loginDiv.style.display = 'none';
-      adminDiv.style.display = 'block';
-      loadPendingNews();
-    } else if(user) {
-      alert("Nuvvu admin kaavu bro!");
-      signOut(auth);
-    } else {
-      loginDiv.style.display = 'block';
-      adminDiv.style.display = 'none';
-    }
-  });
-
-  function loadPendingNews(){
-    onSnapshot(collection(db, "pendingNews"), (snapshot) => {
-      let html = "";
-      if(snapshot.empty) html = "<p>Pending news ledu</p>";
-      snapshot.forEach((docSnap) => {
-        const n = docSnap.data();
-        html += `<div class="card"><h3>${n.title}</h3><p>${n.description}</p><p><b>City:</b> ${n.city}</p><button class="btn" onclick="approveNews('${docSnap.id}')">✅ Approve</button></div>`
-      })
-      document.getElementById('pendingList').innerHTML = html;
-    });
-  }
-
-  window.approveNews = async function(id){
-    const docRef = doc(db, "pendingNews", id);
-    const docSnap = await getDoc(docRef);
-    await addDoc(collection(db, "publishedNews"), docSnap.data());
-    await deleteDoc(docRef);
-    alert("✅ Approved!");
-  }
-</script>
-</body></html>
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+<meta charset="UTF-8"> 
+<title>Admin Login - Pulse360</title> 
+<style> 
+body{font-family:'Segoe UI',Arial;background:#0a0a0a;color:#fff;margin:0;padding:20px;text-align:center} 
+h1{color:#00ff88} 
+.card{background:#1a1a1a;padding:20px;margin:15px 0;border-radius:10px;border-left:4px solid #00ff88;text-align:left} 
+.btn{background:#00ff88;color:#000;border:none;padding:10px 20px;border-radius:6px;font-weight:bold;cursor:pointer;margin:5px} 
+input{padding:10px;width:300px;border-radius:5px;border:none;margin:10px} 
+</style> 
+</head> 
+<body> 
+<h1>🛡️ Pulse360 Admin Panel</h1> 
+<div id="loginDiv"> 
+<p>Nee admin email tho login cheyi</p> 
+<button class="btn" onclick="login()">Login with Google</button> 
+</div> 
+<div id="adminDiv" style="display:none"> 
+<button class="btn" onclick="logout()">Logout</button> 
+<div id="pendingList">Loading...</div> 
+</div> 
+<script type="module"> 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"; 
+import { getFirestore, collection, onSnapshot, doc, deleteDoc, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"; 
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"; 
+const firebaseConfig = { 
+apiKey: "AIzaSyAITlkoZIsMx99BDrj14I1S-ZtdEMsd1kc", 
+authDomain: "pulse360-news.firebaseapp.com", 
+projectId: "pulse360-news" 
+}; 
+const app = initializeApp(firebaseConfig); 
+const db = getFirestore(app); 
+const auth = getAuth(); 
+const provider = new GoogleAuthProvider(); 
+const loginDiv = document.getElementById('loginDiv'); 
+const adminDiv = document.getElementById('adminDiv'); 
+// Login button 
+window.login = () => signInWithPopup(auth, provider); 
+window.logout = () => signOut(auth); 
+// Login ayithe admin page chupinchadam 
+onAuthStateChanged(auth, (user) => { 
+if (user && user.email === 'narasimharaokilli@gmail.com') { // Nee email 
+loginDiv.style.display = 'none'; 
+adminDiv.style.display = 'block'; 
+loadPendingNews(); 
+} else if(user) { 
+alert("Nuvvu admin kaavu bro!"); 
+signOut(auth); 
+} else { 
+loginDiv.style.display = 'block'; 
+adminDiv.style.display = 'none'; 
+} 
+}); 
+function loadPendingNews(){ 
+onSnapshot(collection(db, "pendingNews"), (snapshot) => { 
+let html = ""; 
+if(snapshot.empty) html = "<p>Pending news ledu</p>"; 
+snapshot.forEach((docSnap) => { 
+const n = docSnap.data(); 
+html += `<div class="card"><h3>${n.title}</h3><p>${n.description}</p><p><b>City:</b> ${n.city}</p><button class="btn" onclick="approveNews('${docSnap.id}')">✅ Approve</button><button class="btn" onclick="denyNews('${docSnap.id}')">❌ Deny</button></div>` 
+}) 
+document.getElementById('pendingList').innerHTML = html; 
+}); 
+} 
+window.approveNews = async function(id){ 
+const docRef = doc(db, "pendingNews", id); 
+const docSnap = await getDoc(docRef); 
+await addDoc(collection(db, "publishedNews"), docSnap.data()); 
+await deleteDoc(docRef); 
+alert("✅ Approved!"); 
+} 
+window.denyNews = async function(id){ 
+const docRef = doc(db, "pendingNews", id); 
+await deleteDoc(docRef); 
+alert("❌ News Denied and Removed"); 
+} 
+</script> 
+</body>
+</html>
