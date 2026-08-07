@@ -24,19 +24,17 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script>
-    // 👇 IKKADA NEE FIREBASE CONFIG PASTE CHEYYI
     const firebaseConfig = {
       apiKey: "AIzaSyAITlkoZIsMx99BDrj14I1S-ZtdEMsd1kc",
       authDomain: "pulse360-news.firebaseapp.com",
       projectId: "pulse360-news",
-      storageBucket: "pulse360-news.appspot.com", // 👈 idhi add cheyi
+      storageBucket: "pulse360-news.appspot.com",
       appId: "1:789441397313:web:ff3abd4184818b23d13cc0",
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 👇 NEE CLOUDINARY DETAILS - Already set chesanu
     const CLOUD_NAME = "ld6mifgm";
     const UPLOAD_PRESET = "reporter_upload";
 
@@ -50,9 +48,8 @@
       const description = e.target.description.value;
       const file = e.target.image.files[0];
 
-      // 1. Cloudinary ki image upload
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('image', file); // 👈 'file' → 'image'
       formData.append('upload_preset', UPLOAD_PRESET);
 
       const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
@@ -61,11 +58,10 @@
       });
       const data = await res.json();
 
-      // 2. Firebase lo data save
       await db.collection("pendingNews").add({
         title, 
         description, 
-        image: data.secure_url, 
+        image: data.url, // 👈 secure_url → url
         status: "pending", 
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
