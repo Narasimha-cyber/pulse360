@@ -1,118 +1,73 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Pulse360 Admin</title>
-  <style>
-    body{font-family:Arial; padding:20px; max-width:800px; margin:auto}
-    .card{border:1px solid #ddd; padding:15px; margin:10px 0; border-radius:8px}
-    .btn-approve{background:green; color:white; padding:8px 15px; border:none; cursor:pointer}
-    .btn-delete{background:red; color:white; padding:8px 15px; border:none; cursor:pointer}
-    input{padding:8px; width:200px; margin:5px}
-  </style>
+<meta charset="UTF-8">
+<title>Admin Panel - Pulse360</title>
+<style>
+  body{font-family:'Segoe UI',Arial;background:#0a0a0a;color:#fff;margin:0;padding:20px}
+  h1{color:#00ff88;text-align:center}
+  .card{background:#1a1a1a;padding:20px;margin:15px 0;border-radius:10px;border-left:4px solid #00ff88}
+  .card h3{margin:0 0 10px;color:#00ff88}
+  .card p{margin:5px 0;color:#ccc}
+  .btn{background:#00ff88;color:#000;border:none;padding:10px 20px;border-radius:6px;font-weight:bold;cursor:pointer}
+  .btn:hover{background:#00cc6a}
+  .empty{text-align:center;color:#888;margin-top:50px}
+</style>
 </head>
 <body>
-  <h1>Pulse360 Admin Panel</h1>
+<h1>🛡️ Pulse360 Admin Panel</h1>
+<div id="pendingList" class="empty">Loading pending news...</div>
 
-  <!-- LOGIN SECTION -->
-  <div id="loginDiv">
-    <h3>Admin Login</h3>
-    <input type="email" id="email" placeholder="Admin Email"><br>
-    <input type="password" id="password" placeholder="Password"><br>
-    <button onclick="login()">Login</button>
-    <p id="error" style="color:red"></p>
-  </div>
+<script type="module">
+  // Firebase v9 Modular - idi stable
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+  import { getFirestore, collection, onSnapshot, doc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-  <!-- ADMIN PANEL -->
-  <div id="adminDiv" style="display:none">
-    <button onclick="logout()">Logout</button>
-    <h2>Pending News</h2>
-    <div id="pendingList">Loading...</div>
-  </div>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAITlkoZIsMx99BDrj14I1S-ZtdEMsd1kc",
+    authDomain: "pulse360-news.firebaseapp.com",
+    projectId: "pulse360-news"
+  };
 
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-    import { getFirestore, collection, getDocs, doc, deleteDoc, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyAITlkoZIsMx99BDrj14I1S-ZtdEMsd1kc",
-        authDomain: "pulse360-news.firebaseapp.com",
-        projectId: "pulse360-news",
-        storageBucket: "pulse360-news.appspot.com",
-        messagingSenderId: "789441397313",
-        appId:  "1:789441397313:web:ff3abd4184818b23d13cc0",
-    };
+  const pendingList = document.getElementById('pendingList');
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // Login/Logout functions
-    window.login = () => {
-      const email = document.getElementById('email').value;
-      const pass = document.getElementById('password').value;
-      signInWithEmailAndPassword(auth, email, pass)
-        .catch(err => document.getElementById('error').innerText = err.message);
+  // 1. pendingNews ni live ga chadavadam
+  onSnapshot(collection(db, "pendingNews"), (snapshot) => {
+    if(snapshot.empty){
+      pendingList.innerHTML = `<div class="empty">Ippudu pending news emi ledu bro</div>`;
+      return;
     }
-    window.logout = () => signOut(auth);
-
-    // Login ayyaka em chupinchali
-    onAuthStateChanged(auth, (user) => {
-      if(user){
-        document.getElementById('loginDiv').style.display = 'none';
-        document.getElementById('adminDiv').style.display = 'block';
-        loadPending();
-      } else {
-        document.getElementById('loginDiv').style.display = 'block';
-        document.getElementById('adminDiv').style.display = 'none';
-      }
-    });
-
-  // Pending news load cheyadam
-async function loadPending(){
-  const querySnapshot = await getDocs(collection(db, "pendingNews")); // query teesesa
-  let html = '';
-  
-  querySnapshot.forEach((docSnap) => {
-    const news = docSnap.data();
     
-    if(news.status !== "pending") return; // <-- idhi important
-    
-    html += `
-    <div class="card">
-      <h3>${news.title}</h3>
-      <img src="${news.image}" style="max-width:200px">
-      <p>${news.description}</p>
-      <small>By: ${news.reporterName || 'Anonymous'}</small><br><br>
-      <button class="btn-approve" onclick="approveNews('${docSnap.id}')">Approve</button>
-      <button class="btn-delete" onclick="deleteNews('${docSnap.id}')">Delete</button>
-    </div>
-    `;
+    let html = "";
+    snapshot.forEach((docSnap) => {
+      const n = docSnap.data();
+      html += `
+      <div class="card">
+        <h3>${n.title}</h3>
+        <p>${n.description}</p>
+        <p><b>City:</b> ${n.city || 'N/A'} | <b>Time:</b> ${n.createdAt ? new Date(n.createdAt.seconds*1000).toLocaleString() : 'N/A'}</p>
+        <button class="btn" onclick="approveNews('${docSnap.id}')">✅ Approve & Publish</button>
+      </div>`
+    })
+    pendingList.innerHTML = html;
+  }, (error) => {
+    pendingList.innerHTML = `<div class="empty" style="color:red">Error: ${error.message}</div>`;
   });
-  
-  document.getElementById('pendingList').innerHTML = html || 'No pending news';
-}
 
-    // Approve function
-    window.approveNews = async (id) => {
+  // 2. Approve function - publishedNews ki move chesthundi
+  window.approveNews = async function(id){
+    try{
       const docRef = doc(db, "pendingNews", id);
-      const docSnap = await getDocs(collection(db, "pendingNews"));
-      const news = docSnap.docs.find(d => d.id === id).data();
-      
-      await addDoc(collection(db, "publishedNews"), {...news, approvedAt: serverTimestamp()});
+      const docSnap = await getDoc(docRef);
+      await addDoc(collection(db, "publishedNews"), docSnap.data());
       await deleteDoc(docRef);
-      alert('Approved!');
-      loadPending();
+      alert("✅ Approved! Website lo live ayindi");
+    }catch(e){
+      alert("Error: " + e.message)
     }
-
-    // Delete function
-    window.deleteNews = async (id) => {
-      if(confirm('Delete this news?')){
-        await deleteDoc(doc(db, "pendingNews", id));
-        alert('Deleted!');
-        loadPending();
-      }
-    }
-  </script>
-</body>
-</html>
+  }
+</script>
+</body></html>
