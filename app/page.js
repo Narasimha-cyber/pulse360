@@ -143,8 +143,6 @@ useEffect(() => {
     const shareUrl = url === "#"? window.location.href : url;
     window.open(`https://wa.me/?text=${encodeURIComponent(title + ' - ' + shareUrl)}`, '_blank');
   };
- const [topReporter, setTopReporter] = useState({name: 'Narasimha Rao', posts: 24});
-const [showMonthlyBanner, setShowMonthlyBanner] = useState(false);
 
 useEffect(() => {
   const today = new Date();
