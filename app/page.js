@@ -15,24 +15,16 @@ export default function Home() {
   const [topReporter, setTopReporter] = useState({name: 'Narasimha Rao', posts: 24});
   const [showMonthlyBanner, setShowMonthlyBanner] = useState(false);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
-  const [submitData, setSubmitData] = useState({
-    name: '',
-    phone: '',
-    title: '',
-    description: '',
-    photo: null
-  });
+  const [submitData, setSubmitData] = useState({ name: '', phone: '', title: '', description: '', photo: null });
 
-// IDHI KOTHA GA ADD CHEY
-useEffect(() => {
-  const today = new Date();
-  if(today.getDate() === 1){
-    setShowMonthlyBanner(true);
-    setTimeout(() => setShowMonthlyBanner(false), 24 * 60 * 60 * 1000); // 24 hours
-  }
-}, []);
+  useEffect(() => {
+    const today = new Date();
+    if(today.getDate() === 1){
+      setShowMonthlyBanner(true);
+      setTimeout(() => setShowMonthlyBanner(false), 24 * 60 * 60 * 1000);
+    }
+  }, []);
 
-  // Nuv rayalsina 2 articles
   const ourArticles = [
     {
       id: 'our-1',
@@ -40,7 +32,7 @@ useEffect(() => {
       title: "Eluru lo New Super Specialty Hospital Opening Next Month",
       category: "Local",
       summary: "Eluru govt hospital ki 100 kotlu tho new building kattaru. 200 beds extra.",
-      content: "Full article: Eluru MLA today announced new super specialty hospital will open next month with 200 beds and latest equipment. People of West Godavari will get better treatment.",
+      content: "Full article: Eluru MLA today announced new super specialty hospital will open next month with 200 beds and latest equipment.",
       date: "Aug 4, 2026",
       url: "#"
     },
@@ -50,7 +42,7 @@ useEffect(() => {
       title: "AP lo 50,000 Govt Jobs Notification Released",
       category: "Jobs",
       summary: "APPSC released notification for Group 1, Group 2 and Group 3 posts.",
-      content: "Full article: Andhra Pradesh Public Service Commission released 50,000 vacancies. Last date to apply is Aug 30. Visit appsc.gov.in for details.",
+      content: "Full article: Andhra Pradesh Public Service Commission released 50,000 vacancies. Last date to apply is Aug 30.",
       date: "Aug 4, 2026",
       url: "#"
     },
@@ -80,22 +72,23 @@ useEffect(() => {
             "🚨 India Won T20 World Cup 2026"
           ]);
         }
-      } catch (error) { console.log("Breaking News Error:", error); }
+      } catch (error) {
+        console.log("Breaking News Error:", error);
+      }
     };
     fetchBreaking();
     const interval = setInterval(fetchBreaking, 60000);
     return () => clearInterval(interval);
   }, []);
-  
-  // IDHI KOTTA GA ADD CHEY - APPROVED NEWS LOAD CHEYYADANIKI
-useEffect(() => {
-  const saved = JSON.parse(localStorage.getItem('eluruReporter_submissions') || '[]')
-  const approved = saved.filter(s => s.status === 'approved')
-  if(approved.length > 0){
-    const mapped = approved.map(s => ({...s, region: 'OurArticles'}))
-    setLiveNews(prev => [...mapped, ...prev.filter(p => p.region !== 'OurArticles')])
-  }
-}, [])
+
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem('eluruReporter_submissions') || '[]')
+    const approved = saved.filter(s => s.status === 'approved')
+    if(approved.length > 0){
+      const mapped = approved.map(s => ({...s, region: 'OurArticles'}))
+      setLiveNews(prev => [...mapped,...prev.filter(p => p.region!== 'OurArticles')])
+    }
+  }, [])
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -107,6 +100,7 @@ useEffect(() => {
 
         const res = await fetch(`/api/news?tab=${tabParam}`);
         const data = await res.json();
+
         const apiArticles = data.news?.map((item, i) => ({
           id: `api-${activeTab}-${i}-${Date.now()}`,
           region: activeTab === 'AP'? 'AP' : 'India',
@@ -118,8 +112,11 @@ useEffect(() => {
           url: item.url,
           image: item.image
         })) || [];
-if(activeTab === 'All') setLiveNews([...apiArticles]);
-else setLiveNews(apiArticles);
+
+        if(activeTab === 'All')
+          setLiveNews([...apiArticles]);
+        else
+          setLiveNews(apiArticles);
       } catch (error) {
         console.log("Error:", error);
         setLiveNews(ourArticles);
@@ -137,10 +134,6 @@ else setLiveNews(apiArticles);
     muted: darkMode? '#aaa' : '#555'
   };
 
-  const filteredArticles = liveNews.filter(article =>
-    article.title?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const handleLike = (id) => setLikes(prev => ({...prev, [id]: (prev[id] || 0) + 1}));
   const handleComment = (id) => {
     if(!newComment[id]) return;
@@ -152,56 +145,52 @@ else setLiveNews(apiArticles);
     window.open(`https://wa.me/?text=${encodeURIComponent(title + ' - ' + shareUrl)}`, '_blank');
   };
 
-useEffect(() => {
-  const today = new Date();
-  if(today.getDate() === 1){
-    setShowMonthlyBanner(true);
-    setTimeout(() => setShowMonthlyBanner(false), 24 * 60 * 60 * 1000);
-  }
-}, []);
-
-const handleSubmitNews = (e) => {
+  const handleSubmitNews = (e) => {
     e.preventDefault();
-    
-   const newArticle = {
-  id: `our-${Date.now()}`,
-  region: 'OurArticles',
-  status: 'pending', // <-- IDHI ADD CHEY
-  title: submitData.title,
-  category: "User Submit",
-  summary: submitData.description.slice(0,150) + "...",
-  content: submitData.description,
-  date: new Date().toLocaleDateString(),
-  url: "#",
-  author: submitData.name,
-  photo: submitData.photo // <-- photo kuda add chey
-};
-
-// localStorage lo save chey
-const existing = JSON.parse(localStorage.getItem('eluruReporter_submissions') || '[]')
-localStorage.setItem('eluruReporter_submissions', JSON.stringify([newArticle, ...existing]))
-
-alert('News submitted! Admin approval taruvata publish avthundi');
-setShowSubmitForm(false);
-setSubmitData({name:'', phone:'', title:'', description:'', photo:null});
-// setLiveNews teesey bro - ikkada direct add cheyodhu
-    alert('News submitted successfully! Eluru section lo kanipisthundi');
+    const newArticle = {
+      id: `our-${Date.now()}`,
+      region: 'OurArticles',
+      status: 'pending',
+      title: submitData.title,
+      category: "User Submit",
+      summary: submitData.description.slice(0,150) + "...",
+      content: submitData.description,
+      date: new Date().toLocaleDateString(),
+      url: "#",
+      author: submitData.name,
+      photo: submitData.photo
+    };
+    const existing = JSON.parse(localStorage.getItem('eluruReporter_submissions') || '[]')
+    localStorage.setItem('eluruReporter_submissions', JSON.stringify([newArticle,...existing]))
+    alert('News submitted! Admin approval taruvata publish avthundi');
     setShowSubmitForm(false);
     setSubmitData({name:'', phone:'', title:'', description:'', photo:null});
   };
+    const tabs = ['All', 'AP', 'India', 'OurArticles'];
 
-  const tabs = ['All', 'AP', 'India', 'OurArticles'];
   return (
-    <main style={{ width:'100%', background:colors.bg, color:colors.text, minHeight:'100vh', fontFamily:'system-ui' }}>
-{/* Monthly Best Reporter Banner - Month 1st 24 hours */}
+    <main style={{
+      width:'100%',
+      background:colors.bg,
+      color:colors.text,
+      minHeight:'100vh',
+      fontFamily:'system-ui'
+    }}>
+      {/* Monthly Best Reporter Banner */}
       {showMonthlyBanner && (
-        <div style={{background:'linear-gradient(90deg, #f59e0b, #d97706)', color:'#fff', padding:'16px', textAlign:'center', fontWeight:'bold', fontSize:'15px'}}>
-          🏆 Congratulations {topReporter.name}! 
-          You are "{new Date().toLocaleString('default', { month: 'long' })} 2026 Best Reporter" 
-          with {topReporter.posts} posts. Thank you for being part of our Pulse360 Community! 🏆
+        <div style={{
+          background:'linear-gradient(90deg, #f59e0b, #d97706)',
+          color:'#fff',
+          padding:'16px',
+          textAlign:'center',
+          fontWeight:'bold',
+          fontSize:'15px'
+        }}>
+          🏆 Congratulations {topReporter.name}! You are "{new Date().toLocaleString('default', { month: 'long' })} 2026 Best Reporter" with {topReporter.posts} posts. 🏆
         </div>
       )}
-      {/* Submit News Modal */}
+
+      {/* Submit News Modal - Ide form */}
       {showSubmitForm && (
         <div style={{position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.7)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px'}}>
           <div style={{background:colors.card, padding:'24px', borderRadius:'16px', maxWidth:'500px', width:'100%'}}>
@@ -221,7 +210,7 @@ setSubmitData({name:'', phone:'', title:'', description:'', photo:null});
         </div>
       )}
 
-      {/* Header - MOBILE FIXED */}
+      {/* Header - IKKADA SUBMIT BUTTON TEESAM */}
       <header style={{position:'sticky', top:0, zIndex:10, background:colors.bg, borderBottom:`1px solid ${colors.border}`}}>
         <div style={{maxWidth:'1200px', margin:'0 auto', padding:'12px 16px', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap'}}>
           <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
@@ -229,16 +218,31 @@ setSubmitData({name:'', phone:'', title:'', description:'', photo:null});
             <h1 style={{fontSize:'22px', fontWeight:'bold', color:'#3b82f6'}}>Pulse360</h1>
           </div>
           <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-            <button onClick={() => setShowSubmitForm(true)} style={{padding:'8px 12px', background:'#3b82f6', color:'#fff', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:'600', fontSize:'13px'}}>Submit News</button>
+            {/* SUBMIT BUTTON REMOVE CHESAM */}
             <button onClick={()=>setDarkMode(!darkMode)} style={{fontSize:'20px', background:'none', border:'none', cursor:'pointer'}}>{darkMode? '☀️' : '🌙'}</button>
           </div>
         </div>
 
-        {/* Eluru / All News Toggle - NEW */}
-        <div style={{display:'flex', gap:'8px', justifyContent:'center', padding:'10px 16px', background:colors.card}}>
-          <button onClick={()=>setActiveTab('All')} style={{padding:'8px 16px', borderRadius:'8px', border:'none', background: activeTab === 'All'? '#3b82f6' : colors.border, color: activeTab === 'All'? '#fff' : colors.text, fontWeight:'600', cursor:'pointer'}}>All News</button>
-          <button onClick={()=>setActiveTab('OurArticles')} style={{padding:'8px 16px', borderRadius:'8px', border:'none', background: activeTab === 'OurArticles'? '#ef4444' : colors.border, color: activeTab === 'OurArticles'? '#fff' : colors.text, fontWeight:'600', cursor:'pointer'}}>Eluru</button>
-        </div>
+        {/* Eluru / All News Toggle - IKKADA LINK ADD CHESAM */}
+        <div style={{display:'flex', gap:'8px', justifyContent:'center', padding:'10px 16px', background:colors.card, flexDirection:'column', alignItems:'center'}}>
+          <div style={{display:'flex', gap:'8px'}}>
+            <button onClick={()=>setActiveTab('All')} style={{padding:'8px 16px', borderRadius:'8px', border:'none', background: activeTab === 'All'? '#3b82f6' : colors.border, color: activeTab === 'All'? '#fff' : colors.text, fontWeight:'600', cursor:'pointer'}}>All News</button>
+            <button onClick={()=>setActiveTab('OurArticles')} style={{padding:'8px 16px', borderRadius:'8px', border:'none', background: activeTab === 'OurArticles'? '#ef4444' : colors.border, color: activeTab === 'OurArticles'? '#fff' : colors.text, fontWeight:'600', cursor:'pointer'}}>Eluru</button>
+          </div>
+{/* IDHI KOTHA GA ADD CHESAM - ELURU CLICK CHESTE LINK VASTHUNDI */}
+{activeTab === 'OurArticles' && (
+  <div style={{background:'#1a1a1a', padding:'15px', borderRadius:'10px', textAlign:'center', marginTop:'10px', width:'90%', border:'1px dashed #00ff88'}}>
+    <p style={{color:'#00ff88', fontSize:'14px', margin:'0 0 8px', fontWeight:'600'}}>
+      Please Submit Your News From This Link:
+    </p>
+    {/* NUVVE IKKADA LINK PETTU BRO */}
+    <a href="https://pulse360-black.vercel.app/submit.html" target="_blank"
+       style={{display:'inline-block', background:'#00ff88', color:'#000', padding:'10px 20px', 
+               borderRadius:'8px', textDecoration:'none', fontWeight:'bold', fontSize:'15px'}}>
+       [SUBMIT YOUR NEWS-ELURU]
+    </a>
+  </div>
+)}
 
         {/* Breaking News */}
         <div style={{background:'linear-gradient(90deg, #ef4444, #dc2626)', color:'#fff', padding:'10px 0', textAlign:'center', fontWeight:'bold', fontSize:'13px'}}>
@@ -262,51 +266,40 @@ setSubmitData({name:'', phone:'', title:'', description:'', photo:null});
 
       {/* News Grid */}
       <section style={{maxWidth:'1200px', margin:'0 auto', padding:'24px 16px'}}>
-       <h2 style={{textAlign:'center', marginBottom:'20px', fontSize:'22px'}}>
-  {activeTab === 'AP' ? 'AP Live News' 
-   : activeTab === 'India' ? 'India Live News' 
-   : activeTab === 'Eluru' ? 'Eluru / User News' // <-- Idila marchu
-   : `${activeTab} Live News`}
-</h2>
-{(() => {
-  const filteredArticles = activeTab === 'All'
-    ? liveNews.filter(a => a.region !== 'OurArticles')
-    : activeTab === 'Eluru'
-      ? liveNews.filter(a => a.region === 'Eluru' || a.region === 'OurArticles')
-      : liveNews.filter(a => a.region === activeTab);
-
-  if(loading) return <p style={{textAlign:'center', fontSize:'18px'}}>Loading Live News...</p>
-
-  return (
-    <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap:'20px', justifyItems:'center'}}>
-      {filteredArticles.map(article => (
-            <div key={article.id} style={{background:colors.card, padding:'18px', borderRadius:'16px', border:`1px solid ${colors.border}`, display:'flex', flexDirection:'column', width:'100%', maxWidth:'400px'}}>
-              {article.image && <img src={article.image} alt={article.title} style={{width:'100%', height:'180px', objectFit:'cover', borderRadius:'10px', marginBottom:'10px'}}/>}
-              <div style={{display:'flex', gap:'8px', marginBottom:'8px'}}>
-                <span style={{fontSize:'11px', background: article.region === 'India'? '#ef4444' : article.region === 'AP'? '#3b82f6' : '#10b981', color:'#fff', padding:'4px 10px', borderRadius:'6px', fontWeight:'600'}}>{article.region}</span>
-                <span style={{fontSize:'11px', color:colors.muted}}>{article.date}</span>
-              </div>
-            <h3 style={{fontSize:'17px', marginBottom:'8px', lineHeight:'1.4'}}>
-  {article.title}
-  {article.author === topReporter.name && (
-    <span style={{marginLeft:'8px', fontSize:'11px', background:'#f59e0b', color:'#fff', padding:'3px 8px', borderRadius:'6px'}}>👑 Best Reporter</span>
-  )}
-</h3>
-              <p style={{fontSize:'14px', color:colors.muted, marginBottom:'14px', flexGrow:1}}>{article.summary}</p>
-              <a href={article.url} target="_blank" rel="noopener noreferrer" style={{color:'#3b82f6', fontWeight:'600', marginBottom:'10px', textDecoration:'none'}}>Read More →</a>
-              <div style={{width:'100%', height:'90px', background: colors.border, borderRadius:'8px', margin:'10px 0', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', color: colors.muted}}>Ad Slot</div>
-              <div style={{display:'flex', gap:'8px', marginBottom:'10px', flexWrap:'wrap'}}>
-                <button onClick={()=>handleLike(article.id)} style={{padding:'6px 10px', borderRadius:'8px', border:`1px solid ${colors.border}`, background:colors.bg, cursor:'pointer', fontSize:'13px'}}>❤️ Like ({likes[article.id] || 0})</button>
-                <button onClick={()=>handleWhatsAppShare(article.title, article.url)} style={{padding:'6px 10px', borderRadius:'8px', border:`1px solid ${colors.border}`, background:'#25D366', color:'#fff', cursor:'pointer', fontSize:'13px'}}>📲 Share</button>
-              </div>
-              <div style={{borderTop:`1px solid ${colors.border}`, paddingTop:'10px'}}>
-                <input type="text" placeholder="Add comment..." value={newComment[article.id] || ''} onChange={(e)=>setNewComment(prev=>({...prev, [article.id]: e.target.value}))} style={{width:'100%', padding:'8px', borderRadius:'6px', border:`1px solid ${colors.border}`, background:colors.bg, color:colors.text, marginBottom:'8px', fontSize:'13px'}} />
-                <button onClick={()=>handleComment(article.id)} style={{padding:'6px 12px', borderRadius:'6px', background:'#3b82f6', color:'#fff', border:'none', cursor:'pointer', fontSize:'13px'}}>Comment</button>
-                {(comments[article.id] || []).map((c,i)=><p key={i} style={{fontSize:'13px', marginTop:'6px'}}>💬 {c}</p>)}
-              </div>
+        <h2 style={{textAlign:'center', marginBottom:'20px', fontSize:'22px'}}>
+          {activeTab === 'AP'? 'AP Live News' : activeTab === 'India'? 'India Live News' : activeTab === 'OurArticles'? 'Eluru / User News' : `${activeTab} Live News`}
+        </h2>
+        {(() => {
+          const filteredArticles = activeTab === 'All'? liveNews.filter(a => a.region!== 'OurArticles') : activeTab === 'OurArticles'? liveNews.filter(a => a.region === 'OurArticles') : liveNews.filter(a => a.region === activeTab);
+          if(loading) return <p style={{textAlign:'center', fontSize:'18px'}}>Loading Live News...</p>
+          return (
+            <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap:'20px', justifyItems:'center'}}>
+              {filteredArticles.map(article => (
+                <div key={article.id} style={{background:colors.card, padding:'18px', borderRadius:'16px', border:`1px solid ${colors.border}`, display:'flex', flexDirection:'column', width:'100%', maxWidth:'400px'}}>
+                  {article.image && <img src={article.image} alt={article.title} style={{width:'100%', height:'180px', objectFit:'cover', borderRadius:'10px', marginBottom:'10px'}}/>}
+                  <div style={{display:'flex', gap:'8px', marginBottom:'8px'}}>
+                    <span style={{fontSize:'11px', background: article.region === 'India'? '#ef4444' : article.region === 'AP'? '#3b82f6' : '#10b981', color:'#fff', padding:'4px 10px', borderRadius:'6px', fontWeight:'600'}}>{article.region}</span>
+                    <span style={{fontSize:'11px', color:colors.muted}}>{article.date}</span>
+                  </div>
+                  <h3 style={{fontSize:'17px', marginBottom:'8px', lineHeight:'1.4'}}>
+                    {article.title}
+                    {article.author === topReporter.name && ( <span style={{marginLeft:'8px', fontSize:'11px', background:'#f59e0b', color:'#fff', padding:'3px 8px', borderRadius:'6px'}}>👑 Best Reporter</span> )}
+                  </h3>
+                  <p style={{fontSize:'14px', color:colors.muted, marginBottom:'14px', flexGrow:1}}>{article.summary}</p>
+                  <a href={article.url} target="_blank" rel="noopener noreferrer" style={{color:'#3b82f6', fontWeight:'600', marginBottom:'10px', textDecoration:'none'}}>Read More →</a>
+                  <div style={{width:'100%', height:'90px', background: colors.border, borderRadius:'8px', margin:'10px 0', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', color: colors.muted}}>Ad Slot</div>
+                  <div style={{display:'flex', gap:'8px', marginBottom:'10px', flexWrap:'wrap'}}>
+                    <button onClick={()=>handleLike(article.id)} style={{padding:'6px 10px', borderRadius:'8px', border:`1px solid ${colors.border}`, background:colors.bg, cursor:'pointer', fontSize:'13px'}}>❤️ Like ({likes[article.id] || 0})</button>
+                    <button onClick={()=>handleWhatsAppShare(article.title, article.url)} style={{padding:'6px 10px', borderRadius:'8px', border:`1px solid ${colors.border}`, background:'#25D366', color:'#fff', cursor:'pointer', fontSize:'13px'}}>📲 Share</button>
+                  </div>
+                  <div style={{borderTop:`1px solid ${colors.border}`, paddingTop:'10px'}}>
+                    <input type="text" placeholder="Add comment..." value={newComment[article.id] || ''} onChange={(e)=>setNewComment(prev=>({...prev, [article.id]: e.target.value}))} style={{width:'100%', padding:'8px', borderRadius:'6px', border:`1px solid ${colors.border}`, background:colors.bg, color:colors.text, marginBottom:'8px', fontSize:'13px'}} />
+                    <button onClick={()=>handleComment(article.id)} style={{padding:'6px 12px', borderRadius:'6px', background:'#3b82f6', color:'#fff', border:'none', cursor:'pointer', fontSize:'13px'}}>Comment</button>
+                    {(comments[article.id] || []).map((c,i)=><p key={i} style={{fontSize:'13px', marginTop:'6px'}}>💬 {c}</p>)}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
           )})()}
         <div style={{width:'100%', height:'250px', background: colors.border, borderRadius:'8px', margin:'24px 0', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px', color: colors.muted}}>Ad Slot - Footer Banner</div>
       </section>
