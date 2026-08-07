@@ -1,7 +1,23 @@
 'use client'
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getFirestore, collection, query, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, query, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+
+// 👇 IKADA ADD CHEY 👇
+const firebaseConfig = {
+  apiKey: "AIzaSyAITlkoZIsMx99BDrj14I1S-ZtdEMsd1kc",
+  authDomain:"pulse360-news.firebaseapp.com",
+  projectId:  "pulse360-news",
+  storageBucket:"pulse360-news.firebasestorage.app",
+  messagingSenderId:  "789441397313",
+  appId: "1:789441397313:web:ff3abd4184818b23d13cc0",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+// 👆 IKADA VARAKU 👆
+
 export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
