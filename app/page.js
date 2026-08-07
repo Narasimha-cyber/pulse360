@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-
+import { getFirestore, collection, query, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
@@ -17,14 +17,40 @@ export default function Home() {
   const [showSubmitForm, setShowSubmitForm] = useState(false);
   const [submitData, setSubmitData] = useState({ name: '', phone: '', title: '', description: '', photo: null });
 
-  useEffect(() => {
-    const today = new Date();
-    if(today.getDate() === 1){
-      setShowMonthlyBanner(true);
-      setTimeout(() => setShowMonthlyBanner(false), 24 * 60 * 60 * 1000);
-    }
-  }, []);
+useEffect(() => {
+  const today = new Date();
+  if(today.getDate() === 1){
+    setShowMonthlyBanner(true);
+    getTopReporterFromFirebase();
+    setTimeout(() => setShowMonthlyBanner(false), 24 * 60 * 60 * 1000);
+  }
+}, []);
 
+// Firebase nunchi top reporter ni count chesi teesetundi
+const getTopReporterFromFirebase = async () => {
+  try {
+    const q = query(collection(db, "publishedNews"));
+    const snapshot = await getDocs(q);
+
+    const counts = {};
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      const author = data.author || 'Unknown';
+      counts[author] = (counts[author] || 0) + 1;
+    });
+
+    const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+
+    if(sorted.length > 0){
+      setTopReporter({name: sorted[0][0], posts: sorted[0][1]});
+    } else {
+      setTopReporter({name: 'No Reporter Yet', posts: 0});
+    }
+
+  } catch(e){
+    console.error("Error getting top reporter", e);
+  }
+}
   const ourArticles = [
     {
       id: 'our-1',
