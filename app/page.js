@@ -45,7 +45,7 @@ useEffect(() => {
 // Firebase nunchi top reporter ni count chesi teesetundi
 const getTopReporterFromFirebase = async () => {
   try {
-    const q = query(collection(db, "publishedNews"));
+    const q = query(collection(db, "news"));
     const snapshot = await getDocs(q);
 
     const counts = {};
