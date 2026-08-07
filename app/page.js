@@ -67,40 +67,7 @@ const getTopReporterFromFirebase = async () => {
     console.error("Error getting top reporter", e);
   }
 }
-  // Firebase nunchi publishedNews ni website lo chupinchadam
-useEffect(() => {
-  const fetchPublishedNews = async () => {
-    setLoading(true);
-    try {
-      const q = query(collection(db, "publishedNews"));
-      const snapshot = await getDocs(q);
-
-      const firebaseNews = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          region: data.city === 'Eluru'? 'OurArticles' : 'AP', 
-          title: data.title,
-          category: "Local",
-          summary: data.description?.slice(0,150) + "...",
-          content: data.description,
-          date: data.createdAt?.toDate().toLocaleDateString() || new Date().toLocaleDateString(),
-          url: "#",
-          imageUrl: data.imageUrl || "https://via.placeholder.com/400",
-          author: data.author || "Admin"
-        }
-      });
-
-      setLiveNews(firebaseNews); // idhi important
-
-    } catch (error) {
-      console.error("Error fetching news:", error);
-    }
-    setLoading(false);
-  };
-  
-  fetchPublishedNews();
-}, []);
+ 
   const ourArticles = [
     {
       id: 'our-1',
@@ -166,11 +133,32 @@ useEffect(() => {
       setLiveNews(prev => [...mapped,...prev.filter(p => p.region!== 'OurArticles')])
     }
   }, [])
-    useEffect(() => {
-    const fetchNews = async () => {
-      setLoading(true);
-      try {
-        let tabParam = 'all';
+   useEffect(() => {
+  const fetchNews = async () => {
+    setLoading(true);
+
+    // 👇 IDHI KOTTA GA ADD CHEY - Line 138 ki mundu
+    const q = query(collection(db, "publishedNews"));
+    const snapshot = await getDocs(q);
+    const firebaseNews = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        region: data.city === 'Eluru'? 'OurArticles' : 'AP',
+        title: data.title,
+        category: "Local",
+        summary: data.description?.slice(0,150) + "...",
+        content: data.description,
+        date: data.createdAt?.toDate().toLocaleDateString() || new Date().toLocaleDateString(),
+        url: "#",
+        imageUrl: data.imageUrl || "https://via.placeholder.com/400",
+        author: data.author || "Admin"
+      }
+    });
+    // 👆 IDHI VARAKU ADD CHEY
+
+    try {
+    let tabParam = 'all';
         if(activeTab === 'AP') tabParam = 'AP';
         else if(activeTab === 'India') tabParam = 'India';
 
@@ -189,8 +177,8 @@ useEffect(() => {
           image: item.image
         })) || [];
 
-        if(activeTab === 'All') setLiveNews([...apiArticles]);
-        else setLiveNews(apiArticles);
+      if(activeTab === 'All') setLiveNews([...firebaseNews,...apiArticles]);
+else setLiveNews([...firebaseNews,...apiArticles]);
       } catch (error) {
         console.log("Error:", error);
         setLiveNews(ourArticles);
