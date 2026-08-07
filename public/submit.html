@@ -1,99 +1,50 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Submit News - Pulse360</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body{background:#fff5f0;font-family:sans-serif;padding:20px;margin:0}
-  .form{background:white;padding:25px;border-radius:12px;max-width:500px;margin:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
-    h2{color:#ff6b35;text-align:center;margin-bottom:20px}
-    input,textarea{width:100%;padding:12px;margin:10px 0;border:1px solid #ddd;border-radius:6px;box-sizing:border-box;font-size:14px}
-    button{background:#ff6b35;color:white;border:none;padding:14px 20px;border-radius:6px;cursor:pointer;width:100%;font-weight:bold;font-size:16px}
-    button:disabled{opacity:0.6;cursor:not-allowed}
-  </style>
-</head>
+<head><title>Submit News - Pulse360</title></head>
 <body>
-  <div class="form">
-    <h2>📢 Submit News</h2>
-    <form>
-      <input type="text" name="title" placeholder="News Title" required>
-      <textarea name="description" placeholder="News Description" rows="5" required></textarea>
-      <input type="file" name="image" accept="image/*" required>
-      <button type="submit">Submit News</button>
-    </form>
-  </div>
+<h2>📢 Submit News</h2>
+<form id="newsForm">
+  <input type="text" name="title" placeholder="News Title" required><br><br>
+  <textarea name="description" placeholder="News Description" rows="5" required></textarea><br><br>
+  <input type="file" name="image" accept="image/*" required><br><br>
+  <button type="submit">Submit News</button>
+</form>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-
-  <script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script>
     const firebaseConfig = {
       apiKey: "AIzaSyAITlkoZIsMx99BDrj14I1S-ZtdEMsd1kc",
       authDomain: "pulse360-news.firebaseapp.com",
       projectId: "pulse360-news",
-      storageBucket: "pulse360-news.firebasestorage.app", // 👈 Console lo unnadhe
+      storageBucket: "pulse360-news.firebasestorage.app",
       appId: "1:789441397313:web:ff3abd4184818b23d13cc0",
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
-
     const CLOUD_NAME = "ld6mifgm";
     const UPLOAD_PRESET = "reporter_upload";
 
-    document.querySelector('form').addEventListener('submit', async (e) => {
+    document.getElementById('newsForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const btn = e.target.querySelector('button');
-      btn.innerText = "Uploading...";
-      btn.disabled = true;
-
-      try {
-        // 1. Anonymous login - idi chala important
-        await auth.signInAnonymously();
-        console.log("✅ Login Success:", auth.currentUser.uid);
-
-        const title = e.target.title.value;
-        const description = e.target.description.value;
-        const file = e.target.image.files[0];
-
-        if(!file) throw new Error("Please select an image");
-
-        // 2. Cloudinary upload
-        const formData = new FormData();
-        formData.append('file', file); // 👈 'file' undali
-        formData.append('upload_preset', UPLOAD_PRESET);
-
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-          method: 'POST',
-          body: formData
-        });
-
-        const data = await res.json();
-        if(!data.secure_url) throw new Error("Image upload failed");
-
-        // 3. Firebase lo save
-        await db.collection("pendingNews").add({
-          title,
-          description,
-          image: data.secure_url, // 👈 secure_url
-          status: "pending",
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        alert("✅ News submitted successfully! Admin approval kosam wait cheyyandi");
-        e.target.reset();
-
-      } catch (error) {
-        console.error("❌ Error:", error);
-        alert("Error: " + error.message);
-      } finally {
-        btn.innerText = "Submit News";
-        btn.disabled = false;
-      }
+      await auth.signInAnonymously();
+      const formData = new FormData();
+      formData.append('file', e.target.image.files[0]);
+      formData.append('upload_preset', UPLOAD_PRESET);
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {method: 'POST', body: formData});
+      const data = await res.json();
+      await db.collection("pendingNews").add({
+        title: e.target.title.value,
+        description: e.target.description.value,
+        image: data.secure_url,
+        status: "pending",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      alert("✅ News submitted!");
+      e.target.reset();
     });
-  </script>
+</script>
 </body>
 </html>
