@@ -1,47 +1,13 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>Pulse360 - Live News</title>
-  <style>
-    body{font-family:Arial; max-width:900px; margin:0 auto; padding:20px; text-align:center}
-    .submit-btn{background:#ff6b35; color:white; padding:15px 30px; border-radius:8px; text-decoration:none; font-size:18px; display:inline-block; margin:30px 0}
-    .news{border:1px solid #ddd; padding:15px; margin:15px 0; border-radius:8px; text-align:left}
-    .news img{width:100%; max-height:300px; object-fit:cover}
-  </style>
-</head>
-<body>
-  <h1>🔥 Pulse360 Live News</h1>
-  <a href="/submit.html" class="submit-btn">📢 Submit News</a>
-  
-  <div id="newsContainer">Loading news...</div>
-
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script>
-    const firebaseConfig = { 
-      apiKey: "AIzaSyAITlkoZIsMx99BDrj14I1S-ZtdEMsd1kc",
-      authDomain: "pulse360-news.firebaseapp.com",
-      projectId: "pulse360-news"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // Admin approve chesina news matrame chupisthundi
-    db.collection("publishedNews").orderBy("createdAt", "desc").onSnapshot(snapshot => {
-      const container = document.getElementById('newsContainer');
-      container.innerHTML = "";
-      if(snapshot.empty){ container.innerHTML = "<p>No news yet. Be the first to submit!</p>" }
-      snapshot.forEach(doc => {
-        const n = doc.data();
-        container.innerHTML += `
-          <div class="news">
-            <h2>${n.title}</h2>
-            <img src="${n.image}">
-            <p>${n.description}</p>
-          </div>
-        `;
-      });
-    });
-  </script>
-</body>
-</html>
+<html><head><title>Pulse360 News</title></head><body>
+<h1>🔥 Pulse360 Live News</h1>
+<a href="/submit.html">📢 Submit News</a>
+<div id="news">Loading...</div>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {apiKey:"AIzaSyAITlkoZIsMx99BDrj14I1S-ZtdEMsd1kc",authDomain:"pulse360-news.firebaseapp.com",projectId:"pulse360-news"};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+db.collection("publishedNews").orderBy("createdAt","desc").onSnapshot(s=>{document.getElementById('news').innerHTML="";s.forEach(d=>{let n=d.data();document.getElementById('news').innerHTML+=`<h2>${n.title}</h2><p>${n.description}</p>`;})})
+</script></body></html>
