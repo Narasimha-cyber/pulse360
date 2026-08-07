@@ -167,7 +167,7 @@ export default function Home() {
       <header style={{position:'sticky', top:0, zIndex:10, background:colors.bg, borderBottom:`1px solid ${colors.border}`}}>
         <div style={{maxWidth:'1200px', margin:'0 auto', padding:'12px 16px', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap'}}>
           <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-            <div style={{ width: '35px', height: '35px', backgroundImage: 'url(/logo.svg)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }}></div>
+            <img src="/logo.svg" alt="Pulse360" style={{ width: '180px', height: '45px', objectFit: 'contain' }} />
             <h1 style={{fontSize:'22px', fontWeight:'bold', color:'#3b82f6'}}>Pulse360</h1>
           </div>
           <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
