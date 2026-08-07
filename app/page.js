@@ -86,6 +86,16 @@ useEffect(() => {
     const interval = setInterval(fetchBreaking, 60000);
     return () => clearInterval(interval);
   }, []);
+  
+  // IDHI KOTTA GA ADD CHEY - APPROVED NEWS LOAD CHEYYADANIKI
+useEffect(() => {
+  const saved = JSON.parse(localStorage.getItem('eluruReporter_submissions') || '[]')
+  const approved = saved.filter(s => s.status === 'approved')
+  if(approved.length > 0){
+    const mapped = approved.map(s => ({...s, region: 'OurArticles'}))
+    setLiveNews(prev => [...mapped, ...prev.filter(p => p.region !== 'OurArticles')])
+  }
+}, [])
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -108,10 +118,8 @@ useEffect(() => {
           url: item.url,
           image: item.image
         })) || [];
-
-        if(activeTab === 'All') setLiveNews([...ourArticles,...apiArticles]);
-        else if(activeTab === 'OurArticles') setLiveNews(ourArticles);
-        else setLiveNews(apiArticles);
+if(activeTab === 'All') setLiveNews([...apiArticles]);
+else setLiveNews(apiArticles);
       } catch (error) {
         console.log("Error:", error);
         setLiveNews(ourArticles);
@@ -155,19 +163,28 @@ useEffect(() => {
 const handleSubmitNews = (e) => {
     e.preventDefault();
     
-    const newArticle = {
-      id: `our-${Date.now()}`,
-      region: 'OurArticles', // <-- Iddhe key. All lo raadu
-      title: submitData.title,
-      category: "User Submit",
-      summary: submitData.description.slice(0,150) + "...",
-      content: submitData.description,
-      date: new Date().toLocaleDateString(),
-      url: "#",
-      author: submitData.name
-    };
-    
-    setLiveNews(prev => [newArticle, ...prev]);
+   const newArticle = {
+  id: `our-${Date.now()}`,
+  region: 'OurArticles',
+  status: 'pending', // <-- IDHI ADD CHEY
+  title: submitData.title,
+  category: "User Submit",
+  summary: submitData.description.slice(0,150) + "...",
+  content: submitData.description,
+  date: new Date().toLocaleDateString(),
+  url: "#",
+  author: submitData.name,
+  photo: submitData.photo // <-- photo kuda add chey
+};
+
+// localStorage lo save chey
+const existing = JSON.parse(localStorage.getItem('eluruReporter_submissions') || '[]')
+localStorage.setItem('eluruReporter_submissions', JSON.stringify([newArticle, ...existing]))
+
+alert('News submitted! Admin approval taruvata publish avthundi');
+setShowSubmitForm(false);
+setSubmitData({name:'', phone:'', title:'', description:'', photo:null});
+// setLiveNews teesey bro - ikkada direct add cheyodhu
     alert('News submitted successfully! Eluru section lo kanipisthundi');
     setShowSubmitForm(false);
     setSubmitData({name:'', phone:'', title:'', description:'', photo:null});
