@@ -4,19 +4,17 @@ import Link from 'next/link';
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, query, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 
-// 👇 IKADA ADD CHEY 👇
 const firebaseConfig = {
   apiKey: "AIzaSyAITlkoZIsMx99BDrj14I1S-ZtdEMsd1kc",
   authDomain:"pulse360-news.firebaseapp.com",
-  projectId:  "pulse360-news",
+  projectId: "pulse360-news",
   storageBucket:"pulse360-news.firebasestorage.app",
-  messagingSenderId:  "789441397313",
+  messagingSenderId: "789441397313",
   appId: "1:789441397313:web:ff3abd4184818b23d13cc0",
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-// 👆 IKADA VARAKU 👆
 
 export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
@@ -35,62 +33,49 @@ export default function Home() {
   const [showSubmitForm, setShowSubmitForm] = useState(false);
   const [submitData, setSubmitData] = useState({ name: '', phone: '', title: '', description: '', photo: null });
 
-useEffect(() => {
-  const today = new Date();
-  if(today.getDate() === 1){
-    setShowMonthlyBanner(true);
-    getTopReporterFromFirebase();
-    setTimeout(() => setShowMonthlyBanner(false), 24 * 60 * 60 * 1000);
-  }
-}, []);
-
-// Firebase nunchi top reporter ni count chesi teesetundi
-const getTopReporterFromFirebase = async () => {
-  try {
-    const q = query(collection(db, "publishedNews"));
-    const snapshot = await getDocs(q);
-
-    const counts = {};
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-      const author = data.author || 'Unknown';
-      counts[author] = (counts[author] || 0) + 1;
-    });
-
-    const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
-
-    if(sorted.length > 0){
-      setTopReporter({name: sorted[0][0], posts: sorted[0][1]});
-    } else {
-      setTopReporter({name: 'No Reporter Yet', posts: 0});
+  useEffect(() => {
+    const today = new Date();
+    if(today.getDate() === 1){
+      setShowMonthlyBanner(true);
+      getTopReporterFromFirebase();
+      setTimeout(() => setShowMonthlyBanner(false), 24 * 60 * 60 * 1000);
     }
+  }, []);
 
-  } catch(e){
-    console.error("Error getting top reporter", e);
+  // Ads load cheyyadaniki - popup open ayinapudu
+  useEffect(() => {
+    if(showModal){
+      try {
+        (adsbygoogle = window.adsbygoogle || []).push({})
+        (adsbygoogle = window.adsbygoogle || []).push({})
+      } catch (e) {}
+    }
+  }, [showModal])
+
+  const getTopReporterFromFirebase = async () => {
+    try {
+      const q = query(collection(db, "publishedNews"));
+      const snapshot = await getDocs(q);
+      const counts = {};
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const author = data.author || 'Unknown';
+        counts[author] = (counts[author] || 0) + 1;
+      });
+      const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+      if(sorted.length > 0){
+        setTopReporter({name: sorted[0][0], posts: sorted[0][1]});
+      } else {
+        setTopReporter({name: 'No Reporter Yet', posts: 0});
+      }
+    } catch(e){
+      console.error("Error getting top reporter", e);
+    }
   }
-}
- 
+
   const ourArticles = [
-    {
-      id: 'our-1',
-      region: 'OurArticles',
-      title: "Eluru lo New Super Specialty Hospital Opening Next Month",
-      category: "Local",
-      summary: "Eluru govt hospital ki 100 kotlu tho new building kattaru. 200 beds extra.",
-      content: "Full article: Eluru MLA today announced new super specialty hospital will open next month with 200 beds and latest equipment.",
-      date: "Aug 4, 2026",
-      url: "#"
-    },
-    {
-      id: 'our-2',
-      region: 'OurArticles',
-      title: "AP lo 50,000 Govt Jobs Notification Released",
-      category: "Jobs",
-      summary: "APPSC released notification for Group 1, Group 2 and Group 3 posts.",
-      content: "Full article: Andhra Pradesh Public Service Commission released 50,000 vacancies. Last date to apply is Aug 30.",
-      date: "Aug 4, 2026",
-      url: "#"
-    },
+    { id: 'our-1', region: 'OurArticles', title: "Eluru lo New Super Specialty Hospital Opening Next Month", category: "Local", summary: "Eluru govt hospital ki 100 kotlu tho new building kattaru. 200 beds extra.", content: "Full article: Eluru MLA today announced new super specialty hospital will open next month with 200 beds and latest equipment.", date: "Aug 4, 2026", url: "#" },
+    { id: 'our-2', region: 'OurArticles', title: "AP lo 50,000 Govt Jobs Notification Released", category: "Jobs", summary: "APPSC released notification for Group 1, Group 2 and Group 3 posts.", content: "Full article: Andhra Pradesh Public Service Commission released 50,000 vacancies. Last date to apply is Aug 30.", date: "Aug 4, 2026", url: "#" },
   ];
 
   const [breakingNews, setBreakingNews] = useState([]);
@@ -121,7 +106,6 @@ const getTopReporterFromFirebase = async () => {
         console.log("Breaking News Error:", error);
       }
     };
-
     fetchBreaking();
     const interval = setInterval(fetchBreaking, 60000);
     return () => clearInterval(interval);
@@ -135,38 +119,36 @@ const getTopReporterFromFirebase = async () => {
       setLiveNews(prev => [...mapped,...prev.filter(p => p.region!== 'OurArticles')])
     }
   }, [])
-   useEffect(() => {
-  const fetchNews = async () => {
-    setLoading(true);
 
-    // 👇 IDHI KOTTA GA ADD CHEY - Line 138 ki mundu
-    const q = query(collection(db, "publishedNews"));
-    const snapshot = await getDocs(q);
-    const firebaseNews = snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        region: data.city === 'Eluru'? 'OurArticles' : 'AP',
-        title: data.title,
-        category: "Local",
-        summary: data.description?.slice(0,150) + "...",
-        content: data.description,
-        date: data.createdAt?.toDate().toLocaleDateString() || new Date().toLocaleDateString(),
-        url: `/article/${doc.id}`,
-        imageUrl: data.imageUrl || "https://via.placeholder.com/400",
-        authuor: data.author || "Admin"
-      }
-    });
-    // 👆 IDHI VARAKU ADD CHEY
+  useEffect(() => {
+    const fetchNews = async () => {
+      setLoading(true);
+      const q = query(collection(db, "publishedNews"));
+      const snapshot = await getDocs(q);
+      const firebaseNews = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          region: data.city === 'Eluru'? 'OurArticles' : 'AP',
+          title: data.title,
+          category: "Local",
+          summary: data.description?.slice(0,150) + "...",
+          content: data.description,
+          date: data.createdAt?.toDate().toLocaleDateString() || new Date().toLocaleDateString(),
+          url: `/article/${doc.id}`,
+          imageUrl: data.imageUrl || "https://via.placeholder.com/400",
+          author: data.author || "Admin", // typo fix chesanu: authuor -> author
+          sourceUrl: data.sourceUrl || data.url || "#", // 👈 IKKADA ADD CHESANU
+          sourceName: data.sourceName || "Pulse360" // 👈 IKKADA ADD CHESANU
+        }
+      });
 
-    try {
-    let tabParam = 'all';
+      try {
+        let tabParam = 'all';
         if(activeTab === 'AP') tabParam = 'AP';
         else if(activeTab === 'India') tabParam = 'India';
-
         const res = await fetch(`/api/news?tab=${tabParam}`);
         const data = await res.json();
-
         const apiArticles = data.news?.map((item, i) => ({
           id: `api-${activeTab}-${i}-${Date.now()}`,
           region: activeTab === 'AP'? 'AP' : 'India',
@@ -176,18 +158,20 @@ const getTopReporterFromFirebase = async () => {
           content: item.description,
           date: new Date(item.published).toLocaleDateString(),
           url: item.url,
-          image: item.image
+          image: item.image,
+          imageUrl: item.image, // 👈 popup ki uniform ga undadaniki
+          sourceUrl: item.url, // 👈 IKKADA ADD CHESANU
+          sourceName: item.source?.name || "External" // 👈 IKKADA ADD CHESANU
         })) || [];
 
-      if(activeTab === 'All') setLiveNews([...firebaseNews,...apiArticles]);
-else setLiveNews([...firebaseNews,...apiArticles]);
+        if(activeTab === 'All') setLiveNews([...firebaseNews,...apiArticles]);
+        else setLiveNews([...firebaseNews,...apiArticles]);
       } catch (error) {
         console.log("Error:", error);
         setLiveNews(ourArticles);
       }
       setLoading(false);
     };
-
     fetchNews();
   }, [activeTab]);
 
@@ -205,12 +189,10 @@ else setLiveNews([...firebaseNews,...apiArticles]);
     setComments(prev => ({...prev, [id]: [...(prev[id] || []), newComment[id]]}));
     setNewComment(prev => ({...prev, [id]: ''}))
   };
-
   const handleWhatsAppShare = (title, url) => {
     const shareUrl = url === "#"? window.location.href : url;
     window.open(`https://wa.me/?text=${encodeURIComponent(title + ' - ' + shareUrl)}`, '_blank');
   };
-
   const handleSubmitNews = (e) => {
     e.preventDefault();
     const newArticle = {
@@ -226,7 +208,6 @@ else setLiveNews([...firebaseNews,...apiArticles]);
       author: submitData.name,
       photo: submitData.photo
     };
-
     const existing = JSON.parse(localStorage.getItem('eluruReporter_submissions') || '[]')
     localStorage.setItem('eluruReporter_submissions', JSON.stringify([newArticle,...existing]))
     alert('News submitted! Admin approval taruvata publish avthundi');
@@ -235,7 +216,6 @@ else setLiveNews([...firebaseNews,...apiArticles]);
   };
 
   const tabs = ['All', 'AP', 'India', 'OurArticles'];
-
   return (
     <main style={{ width:'100%', background:colors.bg, color:colors.text, minHeight:'100vh', fontFamily:'system-ui' }}>
       {showMonthlyBanner && (
@@ -279,15 +259,10 @@ else setLiveNews([...firebaseNews,...apiArticles]);
             <button onClick={()=>setActiveTab('All')} style={{padding:'8px 16px', borderRadius:'8px', border:'none', background: activeTab === 'All'? '#3b82f6' : colors.border, color: activeTab === 'All'? '#fff' : colors.text, fontWeight:'600', cursor:'pointer'}}>All News</button>
             <button onClick={()=>setActiveTab('OurArticles')} style={{padding:'8px 16px', borderRadius:'8px', border:'none', background: activeTab === 'OurArticles'? '#ef4444' : colors.border, color: activeTab === 'OurArticles'? '#fff' : colors.text, fontWeight:'600', cursor:'pointer'}}>Eluru</button>
           </div>
-
           {activeTab === 'OurArticles' && (
             <div style={{background:'#1a1a1a', padding:'15px', borderRadius:'10px', textAlign:'center', marginTop:'10px', width:'90%', border:'1px dashed #00ff88'}}>
-              <p style={{color:'#00ff88', fontSize:'14px', margin:'0 0 8px', fontWeight:'600'}}>
-                Please Submit Your News From This Link:
-              </p>
-              <a href="https://pulse360-black.vercel.app/submit.html" target="_blank" style={{display:'inline-block', background:'#00ff88', color:'#000', padding:'10px 20px', borderRadius:'8px', textDecoration:'none', fontWeight:'bold', fontSize:'15px'}}>
-                [SUBMIT YOUR NEWS-ELURU]
-              </a>
+              <p style={{color:'#00ff88', fontSize:'14px', margin:'0 0 8px', fontWeight:'600'}}> Please Submit Your News From This Link: </p>
+              <a href="https://pulse360-black.vercel.app/submit.html" target="_blank" style={{display:'inline-block', background:'#00ff88', color:'#000', padding:'10px 20px', borderRadius:'8px', textDecoration:'none', fontWeight:'bold', fontSize:'15px'}}> [SUBMIT YOUR NEWS-ELURU] </a>
             </div>
           )}
         </div>
@@ -313,6 +288,7 @@ else setLiveNews([...firebaseNews,...apiArticles]);
         <h2 style={{textAlign:'center', marginBottom:'20px', fontSize:'22px'}}>
           {activeTab === 'AP'? 'AP Live News' : activeTab === 'India'? 'India Live News' : activeTab === 'OurArticles'? 'Eluru / User News' : `${activeTab} Live News`}
         </h2>
+
         {(() => {
           const filteredArticles = activeTab === 'All'? liveNews.filter(a => a.region!== 'OurArticles') : activeTab === 'OurArticles'? liveNews.filter(a => a.region === 'OurArticles') : liveNews.filter(a => a.region === activeTab);
           if(loading) return <p style={{textAlign:'center', fontSize:'18px'}}>Loading Live News...</p>
@@ -332,12 +308,9 @@ else setLiveNews([...firebaseNews,...apiArticles]);
                     )}
                   </h3>
                   <p style={{fontSize:'14px', color:colors.muted, marginBottom:'14px', flexGrow:1}}>{article.summary}</p>
-                 <button 
-  onClick={() => {setSelectedArticle(article); setShowModal(true)}}
-  style={{color:'#3b82f6', fontWeight:'600', marginBottom:'10px', background:'none', border:'none', cursor:'pointer', textAlign:'left', fontSize:'14px'}}
->
-  Read More →
-</button>
+                  <button onClick={() => {setSelectedArticle(article); setShowModal(true)}} style={{color:'#3b82f6', fontWeight:'600', marginBottom:'10px', background:'none', border:'none', cursor:'pointer', textAlign:'left', fontSize:'14px'}} >
+                    Read More →
+                  </button>
                   <div style={{width:'100%', height:'90px', background: colors.border, borderRadius:'8px', margin:'10px 0', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', color: colors.muted}}>Ad Slot</div>
                   <div style={{display:'flex', gap:'8px', marginBottom:'10px', flexWrap:'wrap'}}>
                     <button onClick={()=>handleLike(article.id)} style={{padding:'6px 10px', borderRadius:'8px', border:`1px solid ${colors.border}`, background:colors.bg, cursor:'pointer', fontSize:'13px'}}>❤️ Like ({likes[article.id] || 0})</button>
@@ -352,19 +325,56 @@ else setLiveNews([...firebaseNews,...apiArticles]);
               ))}
             </div>
           )})()}
+
         <div style={{width:'100%', height:'250px', background: colors.border, borderRadius:'8px', margin:'24px 0', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px', color: colors.muted}}>Ad Slot - Footer Banner</div>
       </section>
-{showModal && (
-  <div style={{position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.7)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px'}} onClick={() => setShowModal(false)}>
-    <div style={{background:colors.card, padding:'24px', borderRadius:'16px', maxWidth:'700px', width:'100%', maxHeight:'90vh', overflowY:'auto'}} onClick={(e) => e.stopPropagation()}>
-      <button onClick={() => setShowModal(false)} style={{float:'right', fontSize:'30px', background:'none', border:'none', cursor:'pointer', color:colors.text}}>×</button>
-      <h2 style={{fontSize:'24px', fontWeight:'bold', marginBottom:'8px', paddingRight:'30px'}}>{selectedArticle?.title}</h2>
-      <p style={{fontSize:'14px', color:colors.muted, marginBottom:'16px'}}>{selectedArticle?.date} | By {selectedArticle?.author}</p>
-      <img src={selectedArticle?.imageUrl} style={{width:'100%', borderRadius:'10px', marginBottom:'16px'}} alt={selectedArticle?.title} />
-      <p style={{whiteSpace:'pre-line', lineHeight:'1.6', fontSize:'15px'}}>{selectedArticle?.content}</p>
-    </div>
-  </div>
-)}
+
+      {/* POPUP WITH ADS + BUTTON */}
+      {showModal && (
+        <div style={{position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.7)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px'}} onClick={() => setShowModal(false)}>
+          <div style={{background:colors.card, padding:'24px', borderRadius:'16px', maxWidth:'700px', width:'100%', maxHeight:'90vh', overflowY:'auto'}} onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setShowModal(false)} style={{float:'right', fontSize:'30px', background:'none', border:'none', cursor:'pointer', color:colors.text}}>×</button>
+
+            <h2 style={{fontSize:'24px', fontWeight:'bold', marginBottom:'8px', paddingRight:'30px'}}>{selectedArticle?.title}</h2>
+            <p style={{fontSize:'14px', color:colors.muted, marginBottom:'16px'}}>{selectedArticle?.date} | By {selectedArticle?.author}</p>
+            <img src={selectedArticle?.imageUrl} style={{width:'100%', borderRadius:'10px', marginBottom:'16px'}} alt={selectedArticle?.title} />
+
+            {/* 1. SUMMARY 100 WORDS */}
+            <p style={{whiteSpace:'pre-line', lineHeight:'1.6', fontSize:'15px'}}>{selectedArticle?.content}</p>
+
+            {/* 2. AD SLOT 1 */}
+            <div style={{margin:'20px 0'}}>
+              <ins className="adsbygoogle"
+                   style={{display:'block'}}
+                   data-ad-client="ca-pub-3333852580308958"
+                   data-ad-slot="3283435154"
+                   data-ad-format="auto"
+                   data-full-width-responsive="true"></ins>
+            </div>
+
+            {/* 3. BUTTON - MAIN SITE KI REDIRECT */}
+            <a
+              href={selectedArticle?.sourceUrl}
+              target="_blank"
+              rel="nofollow noopener"
+              style={{display: 'block', textAlign: 'center', padding: 14, background: '#00aaff', color: 'white', borderRadius:8, textDecoration: 'none', fontWeight: 'bold', margin: '20px 0'}}
+            >
+              Read Full Article on {selectedArticle?.sourceName} →
+            </a>
+
+            {/* 4. AD SLOT 2 */}
+            <div style={{margin:'20px 0'}}>
+              <ins className="adsbygoogle"
+                   style={{display:'block'}}
+                   data-ad-client="ca-pub-3333852580308958"
+                   data-ad-slot="5641739251"
+                   data-ad-format="auto"
+                   data-full-width-responsive="true"></ins>
+            </div>
+          </div>
+        </div>
+      )}
+
       <footer style={{background: colors.card, borderTop:`1px solid ${colors.border}`, textAlign:'center', padding:'24px 16px'}}>
         <div style={{maxWidth:'1200px', margin:'0 auto'}}>
           <div style={{display:'flex', gap:'16px', justifyContent:'center', marginBottom:'14px', flexWrap:'wrap'}}>
