@@ -168,21 +168,21 @@ export default function Home() {
     window.open(`https://wa.me/?text=${encodeURIComponent(title + ' - ' + shareUrl)}`, '_blank');
   };
 
-  // 👇 CLOUDINARY UPLOAD FUNCTION FOR IMAGE + VIDEO
+ // 👇 CLOUDINARY UPLOAD FUNCTION FOR IMAGE + VIDEO
   const uploadToCloudinary = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', 'reporter_upload'); // 👈 NEE PRESET
     formData.append('resource_type', 'auto'); // 👈 image or video auto detect
 
-    const res = await fetch('https://api.cloudinary.com/v1_1/ld6mifgm/upload', { // 👈 NEE CLOUD NAME
+    const res = await fetch('https://api.cloudinary.com/v1_1/ld6mifgm/auto/upload', { // 👈 IKKADA CHANGE
       method: 'POST',
       body: formData
     });
     const data = await res.json();
+    if(!res.ok) throw new Error(data.error?.message || 'Upload failed'); // 👈 idi kuda add chey error kosam
     return data.secure_url;
   }
-
   const handleSubmitNews = async (e) => {
     e.preventDefault();
 
