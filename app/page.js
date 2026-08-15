@@ -31,7 +31,8 @@ export default function Home() {
   const [topReporter, setTopReporter] = useState({name: 'Narasimha Rao', posts: 24});
   const [showMonthlyBanner, setShowMonthlyBanner] = useState(false);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
-  const [submitData, setSubmitData] = useState({ name: '', phone: '', title: '', description: '', photo: null });
+  const [submitData, setSubmitData] = useState({ name: '', phone: '', title: '', description: '', photo: null, video: null }); // 👈 video add
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const today = new Date();
@@ -41,16 +42,6 @@ export default function Home() {
       setTimeout(() => setShowMonthlyBanner(false), 24 * 60 * 60 * 1000);
     }
   }, []);
-
-  // Ads load cheyyadaniki - popup open ayinapudu
-  useEffect(() => {
-    if(showModal){
-      try {
-        (adsbygoogle = window.adsbygoogle || []).push({})
-        (adsbygoogle = window.adsbygoogle || []).push({})
-      } catch (e) {}
-    }
-  }, [showModal])
 
   const getTopReporterFromFirebase = async () => {
     try {
@@ -73,13 +64,7 @@ export default function Home() {
     }
   }
 
-  const ourArticles = [
-    { id: 'our-1', region: 'OurArticles', title: "Eluru lo New Super Specialty Hospital Opening Next Month", category: "Local", summary: "Eluru govt hospital ki 100 kotlu tho new building kattaru. 200 beds extra.", content: "Full article: Eluru MLA today announced new super specialty hospital will open next month with 200 beds and latest equipment.", date: "Aug 4, 2026", url: "#" },
-    { id: 'our-2', region: 'OurArticles', title: "AP lo 50,000 Govt Jobs Notification Released", category: "Jobs", summary: "APPSC released notification for Group 1, Group 2 and Group 3 posts.", content: "Full article: Andhra Pradesh Public Service Commission released 50,000 vacancies. Last date to apply is Aug 30.", date: "Aug 4, 2026", url: "#" },
-  ];
-
   const [breakingNews, setBreakingNews] = useState([]);
-
   useEffect(() => {
     const interval = setInterval(() => {
       setBreakingIndex(prev => breakingNews.length? (prev + 1) % breakingNews.length : 0);
@@ -112,15 +97,6 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem('eluruReporter_submissions') || '[]')
-    const approved = saved.filter(s => s.status === 'approved')
-    if(approved.length > 0){
-      const mapped = approved.map(s => ({...s, region: 'OurArticles'}))
-      setLiveNews(prev => [...mapped,...prev.filter(p => p.region!== 'OurArticles')])
-    }
-  }, [])
-
-  useEffect(() => {
     const fetchNews = async () => {
       setLoading(true);
       const q = query(collection(db, "publishedNews"));
@@ -129,20 +105,20 @@ export default function Home() {
         const data = doc.data();
         return {
           id: doc.id,
-          region: data.city === 'Eluru'? 'OurArticles' : 'AP',
+          region: data.city === 'Eluru'? 'Eluru' : 'AP', // 👈 OurArticles -> Eluru
           title: data.title,
           category: "Local",
           summary: data.description?.slice(0,150) + "...",
           content: data.description,
           date: data.createdAt?.toDate().toLocaleDateString() || new Date().toLocaleDateString(),
           url: `/article/${doc.id}`,
-          imageUrl: data.imageUrl || "https://via.placeholder.com/400",
-          author: data.author || "Admin", // typo fix chesanu: authuor -> author
-          sourceUrl: data.sourceUrl || data.url || "#", // 👈 IKKADA ADD CHESANU
-          sourceName: data.sourceName || "Pulse360" // 👈 IKKADA ADD CHESANU
-        }
+          imageUrl: data.imageUrl || "",
+          videoUrl: data.videoUrl || "", // 👈 video add
+          author: data.author || "Admin",
+          sourceUrl: data.sourceUrl || data.url || "#",
+          sourceName: data.sourceName || "Pulse360"
+        };
       });
-
       try {
         let tabParam = 'all';
         if(activeTab === 'AP') tabParam = 'AP';
@@ -158,17 +134,15 @@ export default function Home() {
           content: item.description,
           date: new Date(item.published).toLocaleDateString(),
           url: item.url,
-          image: item.image,
-          imageUrl: item.image, // 👈 popup ki uniform ga undadaniki
-          sourceUrl: item.url, // 👈 IKKADA ADD CHESANU
-          sourceName: item.source?.name || "External" // 👈 IKKADA ADD CHESANU
+          imageUrl: item.image,
+          sourceUrl: item.url,
+          sourceName: item.source?.name || "External"
         })) || [];
-
         if(activeTab === 'All') setLiveNews([...firebaseNews,...apiArticles]);
         else setLiveNews([...firebaseNews,...apiArticles]);
       } catch (error) {
         console.log("Error:", error);
-        setLiveNews(ourArticles);
+        setLiveNews([]);
       }
       setLoading(false);
     };
@@ -193,29 +167,72 @@ export default function Home() {
     const shareUrl = url === "#"? window.location.href : url;
     window.open(`https://wa.me/?text=${encodeURIComponent(title + ' - ' + shareUrl)}`, '_blank');
   };
-  const handleSubmitNews = (e) => {
+
+  // 👇 CLOUDINARY UPLOAD FUNCTION FOR IMAGE + VIDEO
+  const uploadToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'reporter_upload'); // 👈 NEE PRESET
+    formData.append('resource_type', 'auto'); // 👈 image or video auto detect
+
+    const res = await fetch('https://api.cloudinary.com/v1_1/ld6mifgm/upload', { // 👈 NEE CLOUD NAME
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    return data.secure_url;
+  }
+
+  const handleSubmitNews = async (e) => {
     e.preventDefault();
-    const newArticle = {
-      id: `our-${Date.now()}`,
-      region: 'OurArticles',
-      status: 'pending',
-      title: submitData.title,
-      category: "User Submit",
-      summary: submitData.description.slice(0,150) + "...",
-      content: submitData.description,
-      date: new Date().toLocaleDateString(),
-      url: "#",
-      author: submitData.name,
-      photo: submitData.photo
-    };
-    const existing = JSON.parse(localStorage.getItem('eluruReporter_submissions') || '[]')
-    localStorage.setItem('eluruReporter_submissions', JSON.stringify([newArticle,...existing]))
-    alert('News submitted! Admin approval taruvata publish avthundi');
-    setShowSubmitForm(false);
-    setSubmitData({name:'', phone:'', title:'', description:'', photo:null});
+
+    if(!submitData.photo &&!submitData.video) {
+      alert('Photo or Video upload chey bro');
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      let imageUrl = "";
+      let videoUrl = "";
+
+      // 1. Image upload
+      if(submitData.photo){
+        imageUrl = await uploadToCloudinary(submitData.photo);
+      }
+      
+      // 2. Video upload
+      if(submitData.video){
+        videoUrl = await uploadToCloudinary(submitData.video);
+      }
+
+      // 3. Firebase lo save
+      await addDoc(collection(db, "publishedNews"), {
+        title: submitData.title,
+        description: submitData.description,
+        author: submitData.name,
+        phone: submitData.phone,
+        imageUrl: imageUrl,
+        videoUrl: videoUrl, // 👈 video save
+        city: 'Eluru', // 👈 Eluru tag
+        status: 'pending',
+        createdAt: serverTimestamp()
+      });
+
+      alert('News submitted! Admin approval taruvata publish avthundi');
+      setShowSubmitForm(false);
+      setSubmitData({name:'', phone:'', title:'', description:'', photo:null, video:null});
+      window.location.reload();
+    } catch(error) {
+      console.error(error);
+      alert("Upload failed: " + error.message);
+    }
+    setUploading(false);
   };
 
-  const tabs = ['All', 'AP', 'India', 'OurArticles'];
+  const tabs = ['All', 'AP', 'India', 'Eluru']; // 👈 OurArticles -> Eluru
+
   return (
     <main style={{ width:'100%', background:colors.bg, color:colors.text, minHeight:'100vh', fontFamily:'system-ui' }}>
       {showMonthlyBanner && (
@@ -233,9 +250,14 @@ export default function Home() {
               <input type="tel" placeholder="Phone Number" required value={submitData.phone} onChange={e=>setSubmitData({...submitData, phone:e.target.value})} style={{width:'100%', padding:'10px', marginBottom:'10px', borderRadius:'8px', border:`1px solid ${colors.border}`, background:colors.bg, color:colors.text}}/>
               <input type="text" placeholder="News Title" required value={submitData.title} onChange={e=>setSubmitData({...submitData, title:e.target.value})} style={{width:'100%', padding:'10px', marginBottom:'10px', borderRadius:'8px', border:`1px solid ${colors.border}`, background:colors.bg, color:colors.text}}/>
               <textarea placeholder="News Description" required rows="4" value={submitData.description} onChange={e=>setSubmitData({...submitData, description:e.target.value})} style={{width:'100%', padding:'10px', marginBottom:'10px', borderRadius:'8px', border:`1px solid ${colors.border}`, background:colors.bg, color:colors.text}}/>
-              <input type="file" onChange={e=>setSubmitData({...submitData, photo:e.target.files[0]})} style={{marginBottom:'16px', color:colors.text}}/>
+              <label style={{fontSize:'13px', color:colors.muted}}>Upload Photo:</label>
+              <input type="file" accept="image/*" onChange={e=>setSubmitData({...submitData, photo:e.target.files[0]})} style={{marginBottom:'10px', color:colors.text}}/>
+              <label style={{fontSize:'13px', color:colors.muted}}>Upload Video:</label>
+              <input type="file" accept="video/*" onChange={e=>setSubmitData({...submitData, video:e.target.files[0]})} style={{marginBottom:'16px', color:colors.text}}/> {/* 👈 VIDEO INPUT ADD */}
               <div style={{display:'flex', gap:'10px'}}>
-                <button type="submit" style={{flex:1, padding:'10px', background:'#3b82f6', color:'#fff', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:'600'}}>Submit</button>
+                <button type="submit" disabled={uploading} style={{flex:1, padding:'10px', background:uploading? '#666' : '#3b82f6', color:'#fff', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:'600'}}>
+                  {uploading? 'Uploading...' : 'Submit'}
+                </button>
                 <button type="button" onClick={()=>setShowSubmitForm(false)} style={{flex:1, padding:'10px', background:colors.border, color:colors.text, border:'none', borderRadius:'8px', cursor:'pointer'}}>Cancel</button>
               </div>
             </form>
@@ -253,28 +275,29 @@ export default function Home() {
             <button onClick={()=>setDarkMode(!darkMode)} style={{fontSize:'20px', background:'none', border:'none', cursor:'pointer'}}>{darkMode? '☀️' : '🌙'}</button>
           </div>
         </div>
-
         <div style={{display:'flex', gap:'8px', justifyContent:'center', padding:'10px 16px', background:colors.card, flexDirection:'column', alignItems:'center'}}>
           <div style={{display:'flex', gap:'8px'}}>
             <button onClick={()=>setActiveTab('All')} style={{padding:'8px 16px', borderRadius:'8px', border:'none', background: activeTab === 'All'? '#3b82f6' : colors.border, color: activeTab === 'All'? '#fff' : colors.text, fontWeight:'600', cursor:'pointer'}}>All News</button>
-            <button onClick={()=>setActiveTab('OurArticles')} style={{padding:'8px 16px', borderRadius:'8px', border:'none', background: activeTab === 'OurArticles'? '#ef4444' : colors.border, color: activeTab === 'OurArticles'? '#fff' : colors.text, fontWeight:'600', cursor:'pointer'}}>Eluru</button>
+            <button onClick={()=>setActiveTab('Eluru')} style={{padding:'8px 16px', borderRadius:'8px', border:'none', background: activeTab === 'Eluru'? '#ef4444' : colors.border, color: activeTab === 'Eluru'? '#fff' : colors.text, fontWeight:'600', cursor:'pointer'}}>Eluru</button> {/* 👈 OurArticles -> Eluru */}
+            <button onClick={()=>setShowSubmitForm(true)} style={{padding:'8px 16px', borderRadius:'8px', border:'none', background: '#10b981', color: '#fff', fontWeight:'600', cursor:'pointer'}}>Submit News</button>
           </div>
-          {activeTab === 'OurArticles' && (
+          {activeTab === 'Eluru' && ( {/* 👈 OurArticles -> Eluru */}
             <div style={{background:'#1a1a1a', padding:'15px', borderRadius:'10px', textAlign:'center', marginTop:'10px', width:'90%', border:'1px dashed #00ff88'}}>
-              <p style={{color:'#00ff88', fontSize:'14px', margin:'0 0 8px', fontWeight:'600'}}> Please Submit Your News From This Link: </p>
-              <a href="https://pulse360-black.vercel.app/submit.html" target="_blank" style={{display:'inline-block', background:'#00ff88', color:'#000', padding:'10px 20px', borderRadius:'8px', textDecoration:'none', fontWeight:'bold', fontSize:'15px'}}> [SUBMIT YOUR NEWS-ELURU] </a>
+              <p style={{color:'#00ff88', fontSize:'14px', margin:'0 0 8px', fontWeight:'600'}}>
+                Please Submit Your News From This Link:
+              </p>
+              <a href="https://pulse360-black.vercel.app/submit.html" target="_blank" style={{display:'inline-block', background:'#00ff88', color:'#000', padding:'10px 20px', borderRadius:'8px', textDecoration:'none', fontWeight:'bold', fontSize:'15px'}}>
+                [SUBMIT YOUR NEWS-ELURU]
+              </a>
             </div>
           )}
         </div>
-
         <div style={{background:'linear-gradient(90deg, #ef4444, #dc2626)', color:'#fff', padding:'10px 0', textAlign:'center', fontWeight:'bold', fontSize:'13px'}}>
           {breakingNews[breakingIndex]}
         </div>
-
         <div style={{maxWidth:'1200px', margin:'0 auto', padding:'12px 16px'}}>
           <input type="text" placeholder="Search news..." value={searchQuery} onChange={(e)=>setSearchQuery(e.target.value)} style={{width:'100%', padding:'10px 14px', borderRadius:'10px', border:`1px solid ${colors.border}`, background:colors.card, color:colors.text, fontSize:'14px'}} />
         </div>
-
         <div style={{display:'flex', gap:'8px', justifyContent:'center', padding:'0 16px 12px', flexWrap:'wrap'}}>
           {['AP', 'India'].map(tab => (
             <button key={tab} onClick={()=>setActiveTab(tab)} style={{ padding:'8px 14px', borderRadius:'8px', border:'none', background: activeTab === tab? '#3b82f6' : colors.card, color: activeTab === tab? '#fff' : colors.text, fontWeight:'600', cursor:'pointer', fontSize:'13px' }}>
@@ -286,17 +309,34 @@ export default function Home() {
 
       <section style={{maxWidth:'1200px', margin:'0 auto', padding:'24px 16px'}}>
         <h2 style={{textAlign:'center', marginBottom:'20px', fontSize:'22px'}}>
-          {activeTab === 'AP'? 'AP Live News' : activeTab === 'India'? 'India Live News' : activeTab === 'OurArticles'? 'Eluru / User News' : `${activeTab} Live News`}
+          {activeTab === 'AP'? 'AP Live News' : activeTab === 'India'? 'India Live News' : activeTab === 'Eluru'? 'Eluru / User News' : `${activeTab} Live News`} {/* 👈 OurArticles -> Eluru */}
         </h2>
-
         {(() => {
-          const filteredArticles = activeTab === 'All'? liveNews.filter(a => a.region!== 'OurArticles') : activeTab === 'OurArticles'? liveNews.filter(a => a.region === 'OurArticles') : liveNews.filter(a => a.region === activeTab);
+          const filteredArticles = activeTab === 'All'? liveNews.filter(a => a.region!== 'Eluru') : activeTab === 'Eluru'? liveNews.filter(a => a.region === 'Eluru') : liveNews.filter(a => a.region === activeTab); {/* 👈 OurArticles -> Eluru */}
           if(loading) return <p style={{textAlign:'center', fontSize:'18px'}}>Loading Live News...</p>
           return (
             <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap:'20px', justifyItems:'center'}}>
               {filteredArticles.map(article => (
                 <div key={article.id} style={{background:colors.card, padding:'18px', borderRadius:'16px', border:`1px solid ${colors.border}`, display:'flex', flexDirection:'column', width:'100%', maxWidth:'400px'}}>
-                  {article.image && <img src={article.image} alt={article.title} style={{width:'100%', height:'180px', objectFit:'cover', borderRadius:'10px', marginBottom:'10px'}}/>}
+
+                  {/* IMAGE */}
+                  {article.imageUrl && (
+                    <img
+                      src={article.imageUrl}
+                      alt={article.title}
+                      style={{width:'100%', height:'180px', objectFit:'cover', borderRadius:'10px', marginBottom:'10px'}}
+                    />
+                  )}
+
+                  {/* VIDEO */}
+                  {article.videoUrl && (
+                    <video
+                      src={article.videoUrl}
+                      controls
+                      style={{width:'100%', height:'180px', borderRadius:'10px', marginBottom:'10px'}}
+                    />
+                  )}
+
                   <div style={{display:'flex', gap:'8px', marginBottom:'8px'}}>
                     <span style={{fontSize:'11px', background: article.region === 'India'? '#ef4444' : article.region === 'AP'? '#3b82f6' : '#10b981', color:'#fff', padding:'4px 10px', borderRadius:'6px', fontWeight:'600'}}>{article.region}</span>
                     <span style={{fontSize:'11px', color:colors.muted}}>{article.date}</span>
@@ -325,56 +365,40 @@ export default function Home() {
               ))}
             </div>
           )})()}
-
         <div style={{width:'100%', height:'250px', background: colors.border, borderRadius:'8px', margin:'24px 0', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px', color: colors.muted}}>Ad Slot - Footer Banner</div>
       </section>
 
-      {/* POPUP WITH ADS + BUTTON */}
+      {/* POPUP */}
       {showModal && (
         <div style={{position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.7)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px'}} onClick={() => setShowModal(false)}>
           <div style={{background:colors.card, padding:'24px', borderRadius:'16px', maxWidth:'700px', width:'100%', maxHeight:'90vh', overflowY:'auto'}} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setShowModal(false)} style={{float:'right', fontSize:'30px', background:'none', border:'none', cursor:'pointer', color:colors.text}}>×</button>
-
             <h2 style={{fontSize:'24px', fontWeight:'bold', marginBottom:'8px', paddingRight:'30px'}}>{selectedArticle?.title}</h2>
             <p style={{fontSize:'14px', color:colors.muted, marginBottom:'16px'}}>{selectedArticle?.date} | By {selectedArticle?.author}</p>
-            <img src={selectedArticle?.imageUrl} style={{width:'100%', borderRadius:'10px', marginBottom:'16px'}} alt={selectedArticle?.title} />
 
-            {/* 1. SUMMARY 100 WORDS */}
+            {/* POPUP IMAGE */}
+            {selectedArticle?.imageUrl && (
+              <img src={selectedArticle?.imageUrl} style={{width:'100%', borderRadius:'10px', marginBottom:'16px'}} alt={selectedArticle?.title} />
+            )}
+
+            {/* POPUP VIDEO */}
+            {selectedArticle?.videoUrl && (
+              <video src={selectedArticle?.videoUrl} controls style={{width:'100%', borderRadius:'10px', marginBottom:'16px'}} />
+            )}
+
             <p style={{whiteSpace:'pre-line', lineHeight:'1.6', fontSize:'15px'}}>{selectedArticle?.content}</p>
-
-            {/* 2. AD SLOT 1 */}
             <div style={{margin:'20px 0'}}>
-              <ins className="adsbygoogle"
-                   style={{display:'block'}}
-                   data-ad-client="ca-pub-3333852580308958"
-                   data-ad-slot="3283435154"
-                   data-ad-format="auto"
-                   data-full-width-responsive="true"></ins>
+              <ins className="adsbygoogle" style={{display:'block'}} data-ad-client="ca-pub-3333852580308958" data-ad-slot="3283435154" data-ad-format="auto" data-full-width-responsive="true"></ins>
             </div>
-
-            {/* 3. BUTTON - MAIN SITE KI REDIRECT */}
-            <a
-              href={selectedArticle?.sourceUrl}
-              target="_blank"
-              rel="nofollow noopener"
-              style={{display: 'block', textAlign: 'center', padding: 14, background: '#00aaff', color: 'white', borderRadius:8, textDecoration: 'none', fontWeight: 'bold', margin: '20px 0'}}
-            >
+            <a href={selectedArticle?.sourceUrl} target="_blank" rel="nofollow noopener" style={{display: 'block', textAlign: 'center', padding: 14, background: '#00aaff', color: 'white', borderRadius:8, textDecoration: 'none', fontWeight: 'bold', margin: '20px 0'}} >
               Read Full Article on {selectedArticle?.sourceName} →
             </a>
-
-            {/* 4. AD SLOT 2 */}
             <div style={{margin:'20px 0'}}>
-              <ins className="adsbygoogle"
-                   style={{display:'block'}}
-                   data-ad-client="ca-pub-3333852580308958"
-                   data-ad-slot="5641739251"
-                   data-ad-format="auto"
-                   data-full-width-responsive="true"></ins>
+              <ins className="adsbygoogle" style={{display:'block'}} data-ad-client="ca-pub-3333852580308958" data-ad-slot="5641739251" data-ad-format="auto" data-full-width-responsive="true"></ins>
             </div>
           </div>
         </div>
       )}
-
       <footer style={{background: colors.card, borderTop:`1px solid ${colors.border}`, textAlign:'center', padding:'24px 16px'}}>
         <div style={{maxWidth:'1200px', margin:'0 auto'}}>
           <div style={{display:'flex', gap:'16px', justifyContent:'center', marginBottom:'14px', flexWrap:'wrap'}}>
