@@ -37,7 +37,7 @@ export default function Home() {
     title: '',
     description: '',
     photo: null
-  }); // 👈 video remove chesam
+  });
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -180,12 +180,11 @@ export default function Home() {
     window.open(`https://wa.me/?text=${encodeURIComponent(title + ' - ' + shareUrl)}`, '_blank');
   };
 
-  // 👇 ONLY IMAGE UPLOAD - VIDEO REMOVE CHESAM
   const uploadToCloudinary = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'reporter_upload'); // 👈 OLD NAME EY
-    const res = await fetch('https://api.cloudinary.com/v1_1/ld6mifgm/image/upload', { // 👈 image/upload
+    formData.append('upload_preset', 'reporter_upload');
+    const res = await fetch('https://api.cloudinary.com/v1_1/ld6mifgm/image/upload', {
       method: 'POST',
       body: formData
     });
@@ -202,16 +201,14 @@ export default function Home() {
     }
     setUploading(true);
     try {
-      // 1. Image upload
       const imageUrl = await uploadToCloudinary(submitData.photo);
 
-      // 2. Firebase lo save
       await addDoc(collection(db, "publishedNews"), {
         title: submitData.title,
         description: submitData.description,
         author: submitData.name,
         phone: submitData.phone,
-        imageUrl: imageUrl, // 👈 IDHI IMPORTANT
+        imageUrl: imageUrl,
         city: 'Eluru',
         status: 'pending',
         createdAt: serverTimestamp()
@@ -230,7 +227,8 @@ export default function Home() {
 
   const tabs = ['All', 'AP', 'India', 'Eluru'];
 
-  return ( <main style={{ width:'100%', background:colors.bg, color:colors.text, minHeight:'100vh', fontFamily:'system-ui' }}>
+  return (
+  <main style={{ width:'100%', background:colors.bg, color:colors.text, minHeight:'100vh', fontFamily:'system-ui' }}>
     {showMonthlyBanner && (
       <div style={{ background:'linear-gradient(90deg, #f59e0b, #d97706)', color:'#fff', padding:'16px', textAlign:'center', fontWeight:'bold', fontSize:'15px' }}>
         🏆 Congratulations {topReporter.name}! You are "{new Date().toLocaleString('default', { month: 'long' })} 2026 Best Reporter" with {topReporter.posts} posts. 🏆
@@ -274,7 +272,6 @@ export default function Home() {
         <div style={{display:'flex', gap:'8px'}}>
           <button onClick={()=>setActiveTab('All')} style={{padding:'8px 16px', borderRadius:'8px', border:'none', background: activeTab === 'All'? '#3b82f6' : colors.border, color: activeTab === 'All'? '#fff' : colors.text, fontWeight:'600', cursor:'pointer'}}>All News</button>
           <button onClick={()=>setActiveTab('Eluru')} style={{padding:'8px 16px', borderRadius:'8px', border:'none', background: activeTab === 'Eluru'? '#ef4444' : colors.border, color: activeTab === 'Eluru'? '#fff' : colors.text, fontWeight:'600', cursor:'pointer'}}>Eluru</button>
-          <button onClick={()=>setShowSubmitForm(true)} style={{padding:'8px 16px', borderRadius:'8px', border:'none', background: '#10b981', color: '#fff', fontWeight:'600', cursor:'pointer'}}>Submit News</button>
         </div>
 
         {activeTab === 'Eluru' && (
@@ -282,9 +279,9 @@ export default function Home() {
             <p style={{color:'#00ff88', fontSize:'14px', margin:'0 0 8px', fontWeight:'600'}}>
               Please Submit Your News From This Link:
             </p>
-            <a href="https://pulse360-black.vercel.app/submit.html" target="_blank" style={{display:'inline-block', background:'#00ff88', color:'#000', padding:'10px 20px', borderRadius:'8px', textDecoration:'none', fontWeight:'bold', fontSize:'15px'}}>
+            <button onClick={()=>setShowSubmitForm(true)} style={{display:'inline-block', background:'#00ff88', color:'#000', padding:'10px 20px', borderRadius:'8px', textDecoration:'none', fontWeight:'bold', fontSize:'15px', border:'none', cursor:'pointer'}}>
               [SUBMIT YOUR NEWS-ELURU]
-            </a>
+            </button>
           </div>
         )}
       </div>
