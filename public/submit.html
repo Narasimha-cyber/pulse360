@@ -3,51 +3,85 @@
 <head>
 <title>Submit News</title>
 <style>
-  body{font-family:Arial;padding:20px;background:#f5f5f5}
-  .box{background:white;padding:20px;border-radius:10px;max-width:500px;margin:auto}
-  input,textarea{width:100%;padding:10px;margin:8px 0;border:1px solid #ccc;border-radius:5px}
-  button{background:#007bff;color:white;padding:10px 20px;border:none;border-radius:5px;cursor:pointer}
-  button:hover{background:#0056b3}
-  label{font-weight:bold}
+body{font-family:Arial;padding:20px;background:#f5f5f5}
+.box{background:white;padding:20px;border-radius:10px;max-width:500px;margin:auto}
+input,textarea{width:100%;padding:10px;margin:8px 0;border:1px solid #ccc;border-radius:5px}
+button{background:#007bff;color:white;padding:10px 20px;border:none;border-radius:5px;cursor:pointer}
+button:hover{background:#0056b3}
+label{font-weight:bold}
 </style>
 </head>
 <body>
 <div class="box">
 <h2>📢 Submit News</h2>
 <form id="newsForm">
-  <label>Title</label>
-  <input name="title" placeholder="News Title" required>
-
-  <label>Description</label>
-  <textarea name="description" rows="4" placeholder="News Description" required></textarea>
-
-  <label>Upload Image</label>
-  <input type="file" name="image" required>
-
-  <button type="submit">Submit</button>
+<label>Name</label>
+<input name="name" placeholder="Your Name" required>
+<label>Phone</label>
+<input name="phone" type="tel" placeholder="Phone Number" required>
+<label>Title</label>
+<input name="title" placeholder="News Title" required>
+<label>Description</label>
+<textarea name="description" rows="4" placeholder="News Description" required></textarea>
+<label>Upload Image</label>
+<input type="file" name="image" required>
+<button type="submit">Submit</button>
 </form>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-<script>
-const firebaseConfig = {apiKey:"AIzaSyAITlkoZIsMx99BDrj14I1S-ZtdEMsd1kc",authDomain:"pulse360-news.firebaseapp.com",projectId:"pulse360-news"};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAITlkoZIsMx99BDrj14I1S-ZtdEMsd1kc",
+  authDomain:"pulse360-news.firebaseapp.com",
+  projectId: "pulse360-news",
+  storageBucket:"pulse360-news.firebasestorage.app",
+  messagingSenderId: "789441397313",
+  appId: "1:789441397313:web:ff3abd4184818b23d13cc0",
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 document.getElementById('newsForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  await auth.signInAnonymously();
-  await db.collection("pendingNews").add({
-    title: e.target.title.value,
-    description: e.target.description.value,
-    city: "Eluru",
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  alert("✅ Submitted! Admin approve chesaka live avthundi");
-  e.target.reset();
+  const form = e.target;
+
+  try {
+    // 1. Cloudinary upload
+    const imageFile = form.image.files[0];
+    const formData = new FormData();
+    formData.append('file', imageFile);
+    formData.append('upload_preset', 'reporter_upload');
+
+    const cloudRes = await fetch('https://api.cloudinary.com/v1_1/ld6mifgm/image/upload', {
+      method: 'POST',
+      body: formData
+    });
+    const cloudData = await cloudRes.json();
+    if(!cloudRes.ok) throw new Error(cloudData.error.message);
+    const imageUrl = cloudData.secure_url;
+
+    // 2. Firebase save
+    await addDoc(collection(db, "publishedNews"), {
+      title: form.title.value,
+      description: form.description.value,
+      author: form.name.value,
+      phone: form.phone.value,
+      imageUrl: imageUrl,
+      city: "Eluru",
+      status: "pending",
+      createdAt: serverTimestamp()
+    });
+
+    alert("✅ Submitted! Admin approve chesaka live avthundi");
+    form.reset();
+  } catch(error) {
+    console.error(error);
+    alert("❌ Error: " + error.message);
+  }
 });
 </script>
-</body></html>
+</body>
+</html>
