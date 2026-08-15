@@ -281,7 +281,7 @@ export default function Home() {
             <button onClick={()=>setActiveTab('Eluru')} style={{padding:'8px 16px', borderRadius:'8px', border:'none', background: activeTab === 'Eluru'? '#ef4444' : colors.border, color: activeTab === 'Eluru'? '#fff' : colors.text, fontWeight:'600', cursor:'pointer'}}>Eluru</button> {/* 👈 OurArticles -> Eluru */}
             <button onClick={()=>setShowSubmitForm(true)} style={{padding:'8px 16px', borderRadius:'8px', border:'none', background: '#10b981', color: '#fff', fontWeight:'600', cursor:'pointer'}}>Submit News</button>
           </div>
-          {activeTab === 'Eluru' && ( {/* 👈 OurArticles -> Eluru */}
+          {activeTab === 'Eluru' && ( 
             <div style={{background:'#1a1a1a', padding:'15px', borderRadius:'10px', textAlign:'center', marginTop:'10px', width:'90%', border:'1px dashed #00ff88'}}>
               <p style={{color:'#00ff88', fontSize:'14px', margin:'0 0 8px', fontWeight:'600'}}>
                 Please Submit Your News From This Link:
